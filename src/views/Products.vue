@@ -83,6 +83,8 @@
 
           <p v-if="isNoPrice(product.id)" class="price-warning">無價格資料</p>
 
+          <div class="content-spacer"></div>
+
           <button
             type="button"
             class="add-cart-btn"
@@ -398,6 +400,9 @@ export default {
 
 .product-content {
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .product-name {
@@ -424,8 +429,10 @@ export default {
 
 .package-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+  min-height: 30px;
+  align-content: flex-start;
 }
 
 .package-tab {
@@ -469,7 +476,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 0;
+  margin: 8px 0 0;
 }
 
 .price-text {
@@ -513,10 +520,14 @@ export default {
   font-weight: 400;
 }
 
+.content-spacer {
+  flex: 1;
+}
+
 .add-cart-btn {
   width: 100%;
   height: 44px;
-  margin-top: 10px;
+  margin-top: 8px;
   border: none;
   border-radius: 6px;
   background: var(--c-primary);
@@ -524,6 +535,7 @@ export default {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .add-cart-btn:disabled {
