@@ -45,36 +45,32 @@
                   </div>
                 </div>
                 <div class="item-body">
-                  <div class="item-name-row">
+                  <div class="item-left-col">
                     <p class="item-name">{{ item.productName }}</p>
+                    <select
+                      class="package-select"
+                      :value="item.packageName"
+                      @change="onPackageChange(item, $event.target.value)"
+                    >
+                      <option
+                        v-for="opt in packageOptions(item.productId)"
+                        :key="opt.label"
+                        :value="opt.label"
+                      >{{ opt.label }}</option>
+                    </select>
+                    <span class="unit-price">NT$ {{ item.unitPrice }}</span>
+                  </div>
+                  <div class="item-right-col">
                     <button type="button" class="remove-btn" @click="removeItem(item)">
                       <trash2-icon :size="14" :stroke-width="1.5" />
                       移除
                     </button>
-                  </div>
-                  <div class="item-detail-row">
-                    <div class="item-left-group">
-                      <select
-                        class="package-select"
-                        :value="item.packageName"
-                        @change="onPackageChange(item, $event.target.value)"
-                      >
-                        <option
-                          v-for="opt in packageOptions(item.productId)"
-                          :key="opt.label"
-                          :value="opt.label"
-                        >{{ opt.label }}</option>
-                      </select>
-                      <span class="unit-price">NT$ {{ item.unitPrice }}</span>
+                    <div class="quantity-control">
+                      <button type="button" class="qty-btn" @click="changeQty(item, -1)">-</button>
+                      <span class="qty-value">{{ item.quantity }}</span>
+                      <button type="button" class="qty-btn" @click="changeQty(item, 1)">+</button>
                     </div>
-                    <div class="item-right-group">
-                      <div class="quantity-control">
-                        <button type="button" class="qty-btn" @click="changeQty(item, -1)">-</button>
-                        <span class="qty-value">{{ item.quantity }}</span>
-                        <button type="button" class="qty-btn" @click="changeQty(item, 1)">+</button>
-                      </div>
-                      <span class="subtotal-text">NT$ {{ item.unitPrice * item.quantity }}</span>
-                    </div>
+                    <span class="subtotal-text">NT$ {{ item.unitPrice * item.quantity }}</span>
                   </div>
                 </div>
               </div>
@@ -299,7 +295,7 @@ export default {
 }
 
 .cart-item {
-  padding: 10px 12px;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -382,35 +378,28 @@ export default {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.item-name-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: row;
+  align-items: stretch;
   gap: 8px;
 }
 
-.item-detail-row {
+.item-left-col {
+  flex: 1;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.item-right-col {
+  flex-shrink: 0;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 8px;
-}
-
-.item-left-group {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.item-right-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
+  padding-right: 0;
 }
 
 .item-name {
@@ -424,11 +413,14 @@ export default {
   border: none;
   background: none;
   color: #8c2020;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   padding: 0;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
 }
 
 .package-select {
@@ -481,6 +473,8 @@ export default {
   font-weight: 700;
   color: #1E293B;
   font-family: var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
 }
 
 /* ── 促銷區塊 ─────────────────────────────── */
