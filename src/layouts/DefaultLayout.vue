@@ -1,6 +1,5 @@
 <template>
   <div class="default-layout">
-    <div class="demo-banner">展示版本 — 所有資料為模擬資料，不影響任何實際系統</div>
     <header class="layout-header">
       <div class="brand">
         <span class="live-dot" aria-hidden="true"></span>
@@ -97,19 +96,6 @@ export default {
 </script>
 
 <style scoped>
-.demo-banner {
-  background: #fdf8ee;
-  color: #8a6a28;
-  font-size: 12px;
-  text-align: center;
-  padding: 6px;
-  font-family: var(--font-sans);
-  letter-spacing: 0.02em;
-  position: sticky;
-  top: 0;
-  z-index: 201;
-}
-
 .default-layout {
   min-height: 100vh;
   display: flex;

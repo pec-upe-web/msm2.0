@@ -69,6 +69,7 @@
           </div>
         </div>
       </div>
+      <p class="demo-note">展示版本 — 所有資料均為模擬資料</p>
     </div>
   </div>
 </template>
@@ -286,6 +287,16 @@ export default {
   color: var(--c-text-muted);
   font-family: var(--font-sans);
   padding-left: 2px;
+}
+
+.demo-note {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 400;
+  color: #94a3b8;
+  font-family: var(--font-sans);
+  letter-spacing: 0.02em;
 }
 
 .quick-button {
