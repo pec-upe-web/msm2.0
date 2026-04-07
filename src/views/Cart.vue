@@ -26,7 +26,6 @@
               :key="item.productId + '_' + item.packageName"
               class="cart-item"
             >
-              <!-- 縮圖 + 品名規格 + 移除按鈕 -->
               <div class="item-top">
                 <div
                   class="item-thumb"
@@ -45,43 +44,39 @@
                     <span class="thumb-watermark">MSM 2.0</span>
                   </div>
                 </div>
-                <div class="item-meta">
-                  <p class="item-name">{{ item.productName }}</p>
-                  <p class="item-spec">{{ item.packageName }}</p>
+                <div class="item-body">
+                  <div class="item-name-row">
+                    <p class="item-name">{{ item.productName }}</p>
+                    <button type="button" class="remove-btn" @click="removeItem(item)">
+                      <trash2-icon :size="14" :stroke-width="1.5" />
+                      移除
+                    </button>
+                  </div>
+                  <div class="item-detail-row">
+                    <div class="item-left-group">
+                      <select
+                        class="package-select"
+                        :value="item.packageName"
+                        @change="onPackageChange(item, $event.target.value)"
+                      >
+                        <option
+                          v-for="opt in packageOptions(item.productId)"
+                          :key="opt.label"
+                          :value="opt.label"
+                        >{{ opt.label }}</option>
+                      </select>
+                      <span class="unit-price">NT$ {{ item.unitPrice }}</span>
+                    </div>
+                    <div class="item-right-group">
+                      <div class="quantity-control">
+                        <button type="button" class="qty-btn" @click="changeQty(item, -1)">-</button>
+                        <span class="qty-value">{{ item.quantity }}</span>
+                        <button type="button" class="qty-btn" @click="changeQty(item, 1)">+</button>
+                      </div>
+                      <span class="subtotal-text">NT$ {{ item.unitPrice * item.quantity }}</span>
+                    </div>
+                  </div>
                 </div>
-                <button type="button" class="remove-btn" @click="removeItem(item)">
-                  <trash2-icon :size="14" :stroke-width="1.5" />
-                  移除
-                </button>
-              </div>
-
-              <div class="item-row">
-                <span class="row-label">包裝別</span>
-                <select
-                  class="package-select"
-                  :value="item.packageName"
-                  @change="onPackageChange(item, $event.target.value)"
-                >
-                  <option
-                    v-for="opt in packageOptions(item.productId)"
-                    :key="opt.label"
-                    :value="opt.label"
-                  >{{ opt.label }}</option>
-                </select>
-              </div>
-
-              <div class="item-row">
-                <span class="row-label">數量</span>
-                <div class="quantity-control">
-                  <button type="button" class="qty-btn" @click="changeQty(item, -1)">-</button>
-                  <span class="qty-value">{{ item.quantity }}</span>
-                  <button type="button" class="qty-btn" @click="changeQty(item, 1)">+</button>
-                </div>
-              </div>
-
-              <div class="item-row price-row">
-                <span class="unit-price">單價 NT$ {{ item.unitPrice }}</span>
-                <span class="subtotal-text">小計 NT$ {{ item.unitPrice * item.quantity }}</span>
               </div>
             </li>
           </ul>
@@ -304,10 +299,10 @@ export default {
 }
 
 .cart-item {
-  padding: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   border-bottom: 0.5px solid #F1F5F9;
   transition: background-color 0.15s ease;
 }
@@ -324,7 +319,7 @@ export default {
 .item-top {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 10px;
 }
 
 .item-thumb {
@@ -383,24 +378,46 @@ export default {
   user-select: none;
 }
 
-.item-meta {
+.item-body {
   flex: 1;
   min-width: 0;
-  padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.item-detail-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.item-left-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.item-right-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
 }
 
 .item-name {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: #1E293B;
-}
-
-.item-spec {
-  margin: 4px 0 0;
-  font-size: 12px;
-  font-weight: 400;
-  color: #64748B;
 }
 
 .remove-btn {
@@ -412,20 +429,6 @@ export default {
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-}
-
-.item-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.row-label {
-  width: 48px;
-  flex-shrink: 0;
-  color: #4b5568;
-  font-size: 13px;
-  font-weight: 400;
 }
 
 .package-select {
@@ -448,8 +451,8 @@ export default {
 }
 
 .qty-btn {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border: none;
   background: #ffffff;
   color: var(--c-primary);
@@ -459,29 +462,25 @@ export default {
 }
 
 .qty-value {
-  width: 34px;
+  width: 30px;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
   color: #334155;
 }
 
-.price-row {
-  justify-content: space-between;
-  padding-top: 4px;
-  border-top: 0.5px solid var(--c-divider);
-}
-
 .unit-price {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
-  color: #4b5568;
+  color: #64748B;
+  font-family: var(--font-mono);
 }
 
 .subtotal-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #334155;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E293B;
+  font-family: var(--font-mono);
 }
 
 /* ── 促銷區塊 ─────────────────────────────── */
@@ -625,8 +624,9 @@ export default {
 
 .mobile-total {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: #334155;
+  font-family: var(--font-mono);
 }
 
 /* ── RWD ──────────────────────────────────── */
@@ -652,8 +652,8 @@ export default {
   }
 
   .item-thumb {
-    width: 48px;
-    height: 48px;
+    width: 60px;
+    height: 60px;
   }
 }
 </style>

@@ -279,7 +279,7 @@ export default {
     confirmCustomer () {
       if (!this.selectedCustomerId) return
       this.closeModal()
-      this.$router.push({ path: '/products', query: { customerId: this.selectedCustomerId } })
+      this.$router.push({ path: '/orders/new/review', query: { customerId: this.selectedCustomerId } })
     }
   }
 }

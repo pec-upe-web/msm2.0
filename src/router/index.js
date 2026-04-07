@@ -68,6 +68,12 @@ const routes = [
         props: true
       },
       {
+        path: 'orders/new/review',
+        name: 'order-new',
+        component: OrderReviewView,
+        meta: { roles: ['sales'] }
+      },
+      {
         path: 'orders/:orderId/review',
         name: 'order-review',
         component: OrderReviewView,

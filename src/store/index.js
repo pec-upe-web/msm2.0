@@ -164,6 +164,11 @@ export default new Vuex.Store({
       state.cartItems = []
       debouncedSaveCart(state.cartItems)
     },
+    // ── 新增訂單 ─────────────────────────────────────────────
+    ADD_ORDER (state, order) {
+      state.orders.unshift(order)
+      debouncedSaveOrders(state.orders)
+    },
     // ── 訂單狀態修改（確保 Vue 2 響應式） ────────────────────
     UPDATE_ORDER_STATUS (state, { orderId, status }) {
       const idx = state.orders.findIndex(o => o.orderId === orderId)
@@ -211,6 +216,9 @@ export default new Vuex.Store({
     },
     updateOrderStatus ({ commit }, payload) {
       commit('UPDATE_ORDER_STATUS', payload)
+    },
+    addOrder ({ commit }, order) {
+      commit('ADD_ORDER', order)
     }
   }
 })

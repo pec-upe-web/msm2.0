@@ -38,8 +38,7 @@ export default {
 
   /* 字型 */
   --font-serif:  'Noto Serif TC', Georgia, serif;
-  --font-sans:   'Inter', 'system-ui', -apple-system, 'Helvetica Neue',
-                 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+  --font-sans:   'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
   --font-mono:   'JetBrains Mono', 'Cascadia Code', 'Courier New', monospace;
 
   /* 半徑 */

@@ -65,7 +65,7 @@ export default {
     return {
       tabs: [
         { label: '首頁', path: '/', icon: Home },
-        { label: '產品', path: '/products', roles: ['customer', 'sales'], icon: Package },
+        { label: '產品', path: '/products', roles: ['customer'], icon: Package },
         { label: '購物車', path: '/cart', roles: ['customer'], icon: ShoppingCart },
         { label: '訂單', path: '/orders', icon: FileText },
         { label: '庫存盤點', path: '/inventory-checks', roles: ['sales'], icon: ClipboardCheck },

@@ -3,18 +3,18 @@
 
     <!-- 頂部操作列 -->
     <div class="top-bar">
-      <button type="button" class="back-btn" @click="$router.push('/orders/' + orderId)">
+      <button type="button" class="back-btn" @click="$router.push(isNew ? '/orders' : '/orders/' + orderId)">
         <chevron-left-icon :size="16" :stroke-width="1.5" />
-        返回訂單詳情
+        {{ isNew ? '返回訂單列表' : '返回訂單詳情' }}
       </button>
     </div>
 
     <!-- 頁面標題 -->
     <div class="page-title-block">
-      <span class="eyebrow">MSM-CORE / ORDER REVIEW</span>
+      <span class="eyebrow">MSM-CORE / {{ isNew ? 'NEW ORDER' : 'ORDER REVIEW' }}</span>
       <div class="title-row">
-        <h2 class="page-title">訂單審核</h2>
-        <span class="title-en-badge">ORDER REVIEW</span>
+        <h2 class="page-title">{{ isNew ? '新增客戶訂單' : '訂單審核' }}</h2>
+        <span class="title-en-badge">{{ isNew ? 'NEW ORDER' : 'ORDER REVIEW' }}</span>
       </div>
     </div>
 
@@ -65,13 +65,32 @@
                 <span :class="['source-badge', 'source--' + row.source]">{{ sourceLabel(row.source) }}</span>
               </td>
               <td>
-                <input
-                  v-if="row.source === 'sales_add'"
-                  v-model="row.productId"
-                  class="edit-input code-input"
-                  placeholder="如 P001"
-                  @change="onProductIdChange(idx)"
-                />
+                <div v-if="row.source === 'sales_add'" class="search-wrap">
+                  <input
+                    v-if="productSearchIdx === idx"
+                    :ref="'psearch_' + idx"
+                    v-model="productSearch"
+                    class="edit-input code-input"
+                    placeholder="輸入代號或名稱"
+                    @blur="closeProductSearch"
+                  />
+                  <span v-else class="cell-text code-chip" @click="openProductSearch(idx)">
+                    {{ row.productId || '+ 選取產品' }}
+                  </span>
+                  <!-- 搜尋下拉 -->
+                  <ul v-if="productSearchIdx === idx && searchedProducts.length" class="search-dropdown">
+                    <li
+                      v-for="p in searchedProducts"
+                      :key="p.id"
+                      class="search-item"
+                      @mousedown.prevent="selectProductFromSearch(p)"
+                    >
+                      <span class="si-id">{{ p.id }}</span>
+                      <span class="si-name">{{ p.name }}</span>
+                      <span class="si-price">NT$ {{ p.price }}</span>
+                    </li>
+                  </ul>
+                </div>
                 <span v-else class="cell-text">{{ row.productId || '—' }}</span>
               </td>
               <td>
@@ -193,13 +212,31 @@
 
         <div class="mc-row">
           <span class="mc-label">產品代號</span>
-          <input
-            v-if="row.source === 'sales_add'"
-            v-model="row.productId"
-            class="edit-input code-input"
-            placeholder="如 P001"
-            @change="onProductIdChange(idx)"
-          />
+          <div v-if="row.source === 'sales_add'" class="search-wrap">
+            <input
+              v-if="productSearchIdx === idx"
+              :ref="'psearch_m_' + idx"
+              v-model="productSearch"
+              class="edit-input code-input"
+              placeholder="輸入代號或名稱"
+              @blur="closeProductSearch"
+            />
+            <span v-else class="cell-text code-chip" @click="openProductSearch(idx)">
+              {{ row.productId || '+ 選取產品' }}
+            </span>
+            <ul v-if="productSearchIdx === idx && searchedProducts.length" class="search-dropdown">
+              <li
+                v-for="p in searchedProducts"
+                :key="p.id"
+                class="search-item"
+                @mousedown.prevent="selectProductFromSearch(p)"
+              >
+                <span class="si-id">{{ p.id }}</span>
+                <span class="si-name">{{ p.name }}</span>
+                <span class="si-price">NT$ {{ p.price }}</span>
+              </li>
+            </ul>
+          </div>
           <span v-else class="mc-value">{{ row.productId || '—' }}</span>
         </div>
         <div class="mc-row">
@@ -375,22 +412,43 @@ export default {
   components: { ChevronLeftIcon, Trash2Icon },
   props: ['orderId'],
   data () {
-    const detail = orderDetails[this.orderId] || {}
+    // isNew：網址為 /orders/new/review
+    const isNew = !this.orderId || this.orderId === 'new'
+    const detail = isNew ? {} : (orderDetails[this.orderId] || {})
     const sourceItems = detail.items || []
     return {
+      isNew,
       deliveryDate: detail.deliveryDate || '',
-      editRows: sourceItems.map(item => buildRow(item)),
-      promotions
+      editRows: isNew ? [newSalesRow()] : sourceItems.map(item => buildRow(item)),
+      promotions,
+      // 行內搜尋
+      productSearch: '',
+      productSearchIdx: null   // 哪一列正在搜尋
     }
   },
   computed: {
     order () {
+      if (this.isNew) return null
       return this.$store.state.orders.find(o => o.orderId === this.orderId) || null
     },
     customerName () {
+      // 新增單：從 query 取 customerId
+      if (this.isNew) {
+        const cid = this.$route.query.customerId
+        const c = customers.find(c => c.id === cid)
+        return c ? c.name : (cid || '—')
+      }
       if (!this.order) return '—'
       const c = customers.find(c => c.id === this.order.customerId)
       return c ? c.name : (this.order.customerId || '—')
+    },
+    // 行內產品搜尋結果
+    searchedProducts () {
+      const kw = (this.productSearch || '').trim().toLowerCase()
+      if (!kw) return []
+      return products.filter(p =>
+        p.id.toLowerCase().includes(kw) || p.name.toLowerCase().includes(kw)
+      ).slice(0, 8)
     },
     packageOptions () {
       return [...new Set(products.map(p => p.package)), '單件', '單件掃描', '箱裝', '卷裝']
@@ -501,13 +559,61 @@ export default {
       })
     },
     saveDraft () {
+      if (this.isNew) {
+        this.$store.dispatch('showSnackbar', { message: '新增單不支援草稿', type: 'error' })
+        return
+      }
       this.$store.dispatch('updateOrderStatus', { orderId: this.orderId, status: 'draft' })
       this.$store.dispatch('showSnackbar', { message: '草稿已儲存', type: 'success' })
     },
     submitOrder () {
+      if (this.isNew) {
+        // 產生新訂單號（SO- + 時間戳末6碼）
+        const newId = 'SO-' + Date.now().toString().slice(-6)
+        const customerId = this.$route.query.customerId || ''
+        const amount = this.totalAmount
+        const newOrder = {
+          orderId: newId,
+          customerId,
+          status: 'confirmed',
+          amount,
+          date: new Date().toISOString().slice(0, 10)
+        }
+        this.$store.dispatch('addOrder', newOrder)
+        this.$store.dispatch('showSnackbar', { message: '訂單已建立', type: 'success' })
+        this.$router.push('/orders')
+        return
+      }
       this.$store.dispatch('updateOrderStatus', { orderId: this.orderId, status: 'transferred' })
       this.$store.dispatch('showSnackbar', { message: '訂單已確認送出', type: 'success' })
       this.$router.push('/orders')
+    },
+    // 行內產品搜尋
+    openProductSearch (idx) {
+      this.productSearchIdx = idx
+      this.productSearch = this.editRows[idx].productId || ''
+      this.$nextTick(() => {
+        const el = this.$refs['psearch_' + idx]
+        if (el) el.focus()
+      })
+    },
+    selectProductFromSearch (product) {
+      const idx = this.productSearchIdx
+      if (idx === null) return
+      this.$set(this.editRows[idx], 'productId', product.id)
+      this.$set(this.editRows[idx], 'name', product.name)
+      this.$set(this.editRows[idx], 'package', product.package)
+      this.$set(this.editRows[idx], 'unitPrice', product.price)
+      this.$set(this.editRows[idx], 'conversionRate', MOCK_CONVERSION_RATES[product.id] || 1)
+      this.$set(this.editRows[idx], 'currentStock', MOCK_STOCKS[product.id] || 0)
+      this.$set(this.editRows[idx], 'noPrice', product.price === 0)
+      this.productSearch = ''
+      this.productSearchIdx = null
+      this.recalcPromotions()
+    },
+    closeProductSearch () {
+      this.productSearch = ''
+      this.productSearchIdx = null
     }
   }
 }
@@ -608,6 +714,75 @@ export default {
 
 .code-input {
   width: 72px;
+}
+
+/* 行內產品搜尋 */
+.search-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.code-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 0.5px dashed var(--c-border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--c-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.code-chip:hover {
+  background: var(--c-primary-light);
+}
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 300;
+  background: #ffffff;
+  border: 0.5px solid var(--c-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  min-width: 220px;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.search-item:hover {
+  background: var(--c-primary-light);
+}
+
+.si-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--c-text-muted);
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.si-name {
+  flex: 1;
+  color: var(--c-text-body);
+  font-weight: 500;
+}
+
+.si-price {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  flex-shrink: 0;
 }
 
 .name-input {

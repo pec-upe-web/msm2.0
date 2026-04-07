@@ -51,10 +51,16 @@
           </div>
         </div>
         <div class="product-content">
-          <h3 class="product-name">{{ product.name }}</h3>
+          <div class="name-row">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <span
+              v-if="packageOptionsMap[product.id].length === 1"
+              class="single-pkg-badge"
+            >{{ packageOptionsMap[product.id][0].label }}</span>
+          </div>
           <p class="product-id">{{ product.id }}</p>
 
-          <div class="package-tabs">
+          <div v-if="packageOptionsMap[product.id].length > 1" class="package-tabs">
             <button
               v-for="option in packageOptionsMap[product.id]"
               :key="option.label"
@@ -66,12 +72,8 @@
             </button>
           </div>
 
-          <p class="price-text">
-            單價：NT$ {{ selectedOption(product.id).price }}
-          </p>
-
-          <div class="quantity-row">
-            <span class="quantity-label">數量</span>
+          <div class="price-qty-row">
+            <span class="price-text">NT$ {{ selectedOption(product.id).price }}</span>
             <div class="quantity-control">
               <button type="button" class="quantity-btn" @click="decreaseQty(product.id)">-</button>
               <span class="quantity-value">{{ quantityMap[product.id] }}</span>
@@ -413,10 +415,11 @@ export default {
 }
 
 .product-id {
-  margin: 6px 0 10px;
-  color: #8b95a8;
-  font-size: 12px;
+  margin: 3px 0 8px;
+  color: #c0c8d4;
+  font-size: 11px;
   font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
 .package-tabs {
@@ -441,23 +444,39 @@ export default {
   font-weight: 500;
 }
 
-.price-text {
-  margin: 10px 0;
-  color: #334155;
-  font-size: 14px;
-  font-weight: 500;
+.name-row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 0;
 }
 
-.quantity-row {
+.single-pkg-badge {
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 2px 6px;
+  border: 0.5px solid var(--c-border);
+  border-radius: 4px;
+  background: #F8FAFC;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.price-qty-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 8px 0;
 }
 
-.quantity-label {
-  color: #4b5568;
-  font-size: 13px;
-  font-weight: 400;
+.price-text {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 .quantity-control {
@@ -538,7 +557,6 @@ export default {
 
   .price-text {
     font-size: 13px;
-    margin: 8px 0;
   }
 
   .quantity-btn {
