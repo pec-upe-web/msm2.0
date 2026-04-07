@@ -255,8 +255,8 @@ export default {
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start;
+  gap: 16px;
+  align-items: stretch;
 }
 .sales-top-grid {
   grid-template-columns: 2fr 3fr;
@@ -351,6 +351,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
 }
 
 .order-item {
@@ -386,10 +387,12 @@ export default {
   font-weight: 500;
   color: #334155;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 .card-footer {
-  padding-top: 4px;
+  margin-top: auto;
+  padding-top: 12px;
   border-top: 0.5px solid var(--c-divider);
 }
 
@@ -649,6 +652,7 @@ export default {
   .dashboard-grid,
   .overview-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>
