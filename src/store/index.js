@@ -6,7 +6,7 @@ import { orders as initialOrders } from '../mock/orders'
 Vue.use(Vuex)
 
 // ── 版本常數（格式變更時遞增，舊快取會被自動清除） ───────────
-const APP_VERSION = '1.1'
+const APP_VERSION = '1.2'
 const CART_KEY = 'b2b_cartItems'
 const ORDERS_KEY = 'b2b_orders'
 
