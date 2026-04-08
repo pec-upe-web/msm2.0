@@ -63,7 +63,7 @@ export default {
 
 body {
   margin: 0;
-  background: #0c1222;
+  background: #f0f7ff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -76,12 +76,13 @@ body {
   font-weight: 400;
   line-height: 1.6;
   color: var(--c-text-body);
-  background-color: #0c1222;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, #f0f7ff 0%, #ffffff 100%);
   position: relative;
   overflow-x: hidden;
 }
 
-/* ── Neon Grid (偽元素底層) ────────────── */
+/* ── 點線網格 + 幾何裝飾 (底層) ─────────── */
 #app::before {
   content: '';
   position: fixed;
@@ -89,36 +90,48 @@ body {
   z-index: -1;
   pointer-events: none;
   background-image:
-    /* 交點霓虹圓點 */
-    radial-gradient(circle 1.5px, rgba(0, 242, 254, 0.55) 1px, transparent 1.5px),
-    /* 水平霓虹網格線 */
-    linear-gradient(rgba(0, 242, 254, 0.12) 0.5px, transparent 0.5px),
-    /* 垂直霓虹網格線 */
-    linear-gradient(90deg, rgba(0, 242, 254, 0.12) 0.5px, transparent 0.5px);
+    /* 交點精密圓點 */
+    radial-gradient(circle 1px, #ffffff 1px, transparent 1px),
+    /* 淺天藍連線 — 水平 */
+    linear-gradient(rgba(186, 230, 253, 0.30) 0.5px, transparent 0.5px),
+    /* 淺天藍連線 — 垂直 */
+    linear-gradient(90deg, rgba(186, 230, 253, 0.30) 0.5px, transparent 0.5px),
+    /* 大幾何三角裝飾 — 左上 */
+    linear-gradient(135deg, rgba(59, 130, 246, 0.04) 25%, transparent 25%),
+    /* 大幾何三角裝飾 — 右下 */
+    linear-gradient(315deg, rgba(59, 130, 246, 0.03) 20%, transparent 20%);
   background-size:
-    40px 40px,
-    40px 40px,
-    40px 40px;
+    48px 48px,
+    48px 48px,
+    48px 48px,
+    100% 100%,
+    100% 100%;
 }
 
-/* ── 動態霓虹微光 (呼吸漂移) ────────────── */
+/* ── 流動曲線 + 微光呼吸 ────────────────── */
 #app::after {
   content: '';
   position: fixed;
-  inset: -40% -20%;
+  inset: 0;
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 45% 40% at 20% 25%, rgba(0, 198, 255, 0.20) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 45% at 80% 75%, rgba(196, 113, 237, 0.15) 0%, transparent 70%);
-  animation: glow-drift 30s ease-in-out infinite alternate;
+    /* 右上柔光 */
+    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(186, 230, 253, 0.25) 0%, transparent 70%),
+    /* 左下柔光 */
+    radial-gradient(ellipse 45% 50% at 15% 85%, rgba(191, 219, 254, 0.20) 0%, transparent 70%),
+    /* 底部流動波紋 1 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='none' stroke='%23bae6fd' stroke-width='0.8' opacity='0.18' d='M0,224C240,160,480,288,720,224C960,160,1200,288,1440,224'/%3E%3Cpath fill='none' stroke='%23bae6fd' stroke-width='0.6' opacity='0.12' d='M0,256C240,192,480,320,720,256C960,192,1200,320,1440,256'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 100% 320px;
+  background-position: center, center, bottom;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  animation: glow-breathe 20s ease-in-out infinite alternate;
 }
 
-@keyframes glow-drift {
-  0%   { transform: translate(0, 0)   scale(1);    }
-  33%  { transform: translate(3%, -2%) scale(1.05); }
-  66%  { transform: translate(-2%, 3%) scale(0.97); }
-  100% { transform: translate(1%, -1%) scale(1.02); }
+@keyframes glow-breathe {
+  0%   { opacity: 1;    }
+  50%  { opacity: 0.75; }
+  100% { opacity: 1;    }
 }
 
 /* ── 訂單號 / 金額等寬字型 helper ──────── */
