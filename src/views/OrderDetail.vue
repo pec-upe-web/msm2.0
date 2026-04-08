@@ -8,10 +8,17 @@
         返回訂單列表
       </button>
       <router-link
-        v-if="canReview"
+        v-if="canReview && order && order.status === 'pending'"
         :to="`/orders/${orderId}/review`"
         class="review-btn"
-      >{{ reviewBtnLabel }}</router-link>
+      >前往審單</router-link>
+      <button
+        v-if="canReview && order && order.status === 'error'"
+        type="button"
+        class="retransfer-btn"
+        :disabled="isRetransferring"
+        @click="retransfer"
+      >{{ isRetransferring ? '拋轉中…' : '重新拋轉' }}</button>
     </div>
 
     <!-- 頁面標題 -->
@@ -215,6 +222,11 @@ export default {
   name: 'OrderDetailPage',
   components: { ChevronLeftIcon, PackageIcon },
   props: ['orderId'],
+  data () {
+    return {
+      isRetransferring: false
+    }
+  },
   computed: {
     currentUser () {
       return getCurrentUser() || { role: '' }
@@ -253,6 +265,17 @@ export default {
     }
   },
   methods: {
+    retransfer () {
+      this.isRetransferring = true
+      setTimeout(() => {
+        this.$store.dispatch('updateOrderStatus', { orderId: this.orderId, status: 'transferred' })
+        this.$store.dispatch('showSnackbar', {
+          message: '訂單重新拋轉成功，已進入二階系統',
+          duration: 2500
+        })
+        this.isRetransferring = false
+      }, 1500)
+    },
     goBack () {
       const query = this.$route.query.filter
         ? { filter: this.$route.query.filter }
@@ -307,6 +330,22 @@ export default {
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+}
+
+.retransfer-btn {
+  padding: 9px 18px;
+  background: #fff1f0;
+  color: #cf1322;
+  border: 0.5px solid #ffa39e;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.retransfer-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .not-found {

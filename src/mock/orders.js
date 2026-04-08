@@ -3,7 +3,7 @@ export const orders = [
   { orderId: 'SO-1002', customerId: 'C002', status: 'error',      amount: 28600, date: '2026-04-06', companyName: '大台北經銷' },
   { orderId: 'SO-1003', customerId: 'C003', status: 'processing', amount: 15200, date: '2026-04-05', companyName: '環球流通'        },
   { orderId: 'SO-1004', customerId: 'C004', status: 'cancelled',  amount: 9800,  date: '2026-04-04', companyName: '台中物流中心' },
-  { orderId: 'SO-1005', customerId: 'C005', status: 'transferred',amount: 42000, date: '2026-04-03', companyName: '大台北經銷' },
+  { orderId: 'SO-1005', customerId: 'C005', status: 'error',      amount: 42000, date: '2026-04-03', companyName: '大台北經銷' },
   { orderId: 'SO-1006', customerId: 'C006', status: 'pending',    amount: 22400, date: '2026-04-02', companyName: '環球流通'        },
   { orderId: 'SO-1007', customerId: 'C007', status: 'confirmed',  amount: 31500, date: '2026-04-01', companyName: '台中物流中心' },
   { orderId: 'SO-1008', customerId: 'C008', status: 'processing', amount: 18900, date: '2026-03-31', companyName: '大台北經銷' },

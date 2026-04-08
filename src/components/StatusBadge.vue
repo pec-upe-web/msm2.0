@@ -19,7 +19,6 @@ export default {
     },
     label () {
       const labels = {
-        draft: '草稿',
         pending: '待審核',
         confirmed: '已確認',
         processing: '處理中',
@@ -56,14 +55,6 @@ export default {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
-/* 草稿 */
-.status--draft {
-  background: #f8fafc;
-  color: #64748b;
-  border-color: #e2e8f0;
-}
-.status--draft .status-dot { background: #94a3b8; }
 
 /* 待審核 */
 .status--pending {
@@ -111,5 +102,13 @@ export default {
   color: #cf1322;
   border-color: #ffa39e;
 }
-.status--error .status-dot { background: #f5222d; }
+.status--error .status-dot {
+  background: #f5222d;
+  animation: dot-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes dot-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(0.6); }
+}
 </style>
