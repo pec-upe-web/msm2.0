@@ -114,6 +114,18 @@ export default {
       this.redirectByRole(currentUser.role)
     }
   },
+  mounted () {
+    // 登入頁進入時立即套用 localStorage 主題
+    const theme = localStorage.getItem('theme')
+    if (theme) {
+      try {
+        const themeVars = JSON.parse(localStorage.getItem('themeVars') || '{}')
+        Object.entries(themeVars).forEach(([k, v]) => {
+          document.documentElement.style.setProperty(k, v)
+        })
+      } catch (e) {}
+    }
+  },
   methods: {
     submitLogin () {
       const foundUser = users.find(
@@ -154,9 +166,7 @@ export default {
   padding: 24px;
   position: relative;
   overflow: hidden;
-  /* ── 藍色漸層底色 ─── */
-  background:
-    linear-gradient(160deg, #56CCF2 0%, #3B82F6 35%, #1E3A8A 100%);
+  background: var(--c-bg);
 }
 
 /* ── 點線網格層 ─────────────────────── */
@@ -227,11 +237,11 @@ export default {
   z-index: 1;
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 0.5px solid rgba(255, 255, 255, 0.6);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: var(--r-lg);
   padding: var(--space-lg);
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
 }
 
 /* ── 標題區塊 ───────────────────────── */
@@ -361,8 +371,8 @@ export default {
   justify-content: center;
   gap: 6px;
   padding: 14px 8px 10px;
-  background: #F8FAFB;
-  border: 0.5px solid #E2E8F0;
+  background: var(--c-stripe);
+  border: 0.5px solid var(--c-border);
   border-radius: var(--r-md);
   cursor: pointer;
   font-family: var(--font-sans);
