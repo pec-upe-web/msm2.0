@@ -169,7 +169,9 @@ export default {
   padding: 24px;
   position: relative;
   overflow: hidden;
-  background: var(--c-bg);
+  /* ── 藍色漸層底色 ─── */
+  background:
+    linear-gradient(160deg, #56CCF2 0%, #3B82F6 35%, #1E3A8A 100%);
 }
 
 /* ── 點線網格層 ─────────────────────── */
