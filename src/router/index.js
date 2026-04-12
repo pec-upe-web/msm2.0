@@ -10,6 +10,7 @@ import OrderDetailView from '../views/OrderDetail.vue'
 import OrderReviewView from '../views/OrderReview.vue'
 import InventoryChecksView from '../views/InventoryChecks.vue'
 import InventoryCheckDetailView from '../views/InventoryCheckDetail.vue'
+import InventoryRecordDetailView from '../views/InventoryRecordDetail.vue'
 import PromotionsView from '../views/Promotions.vue'
 import ForbiddenView from '../views/Forbidden.vue'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
@@ -84,6 +85,13 @@ const routes = [
         path: 'inventory-checks',
         name: 'inventory-checks',
         component: InventoryChecksView,
+        meta: { roles: ['sales'] }
+      },
+      {
+        path: 'inventory-checks/record/:recordId',
+        name: 'inventory-record-detail',
+        component: InventoryRecordDetailView,
+        props: true,
         meta: { roles: ['sales'] }
       },
       {

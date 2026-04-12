@@ -41,7 +41,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">訂單狀態</span>
-            <span class="info-value"><status-badge :status="order.status" /></span>
+            <span class="info-value"><status-badge :status="order.status" :viewer-role="currentUser.role" /></span>
           </div>
           <div class="info-item">
             <span class="info-label">訂單日期</span>
@@ -50,6 +50,10 @@
           <div class="info-item">
             <span class="info-label">預計到貨日</span>
             <span class="info-value">{{ detail.deliveryDate || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">配送單位</span>
+            <span class="info-value">{{ detail.deliveryUnit || '台北倉' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">銷售公司</span>
@@ -216,7 +220,7 @@ import {
   Package as PackageIcon
 } from 'lucide-vue'
 
-const REVIEWED_STATUSES = ['confirmed', 'processing', 'transferred', 'cancelled', 'error']
+const REVIEWED_STATUSES = ['confirmed', 'processing', 'transferred', 'cancelled', 'error', 'shipped']
 
 export default {
   name: 'OrderDetailPage',
@@ -367,7 +371,11 @@ export default {
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px 32px;
+}
+
+.info-item--full {
+  grid-column: 1 / -1;
 }
 
 .info-item {

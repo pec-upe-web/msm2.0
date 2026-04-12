@@ -18,6 +18,20 @@
 
         <!-- 左側主區：品項列表 -->
         <section class="cart-main">
+          <!-- 銷售公司切換 -->
+          <div class="company-switcher">
+            <span class="company-switcher-label">銷售公司</span>
+            <div class="company-tabs">
+              <button
+                v-for="co in salesCompanies"
+                :key="co.id"
+                type="button"
+                :class="['company-tab', { active: selectedSalesCompany.id === co.id }]"
+                @click="selectCompany(co)"
+              >{{ co.shortName }}</button>
+            </div>
+          </div>
+
           <h2 class="section-title">購物車品項</h2>
 
           <ul class="item-list">
@@ -153,6 +167,7 @@
 <script>
 import { products } from '../mock/products'
 import { promotions } from '../mock/promotions'
+import { salesCompanies } from '../mock/salesCompanies'
 import { Trash2 as Trash2Icon } from 'lucide-vue'
 
 export default {
@@ -162,6 +177,7 @@ export default {
     return {
       productList: products,
       promotions,
+      salesCompanies,
       thumbReadySet: {},
       thumbErrorSet: {},
       confirmItem: null,
@@ -171,6 +187,9 @@ export default {
   computed: {
     cartItems () {
       return this.$store.state.cartItems
+    },
+    selectedSalesCompany () {
+      return this.$store.state.selectedSalesCompany
     },
     subtotal () {
       return this.cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
@@ -203,6 +222,9 @@ export default {
     }
   },
   methods: {
+    selectCompany (co) {
+      this.$store.dispatch('setSalesCompany', co)
+    },
     packageOptions (productId) {
       const product = this.productList.find(p => p.id === productId)
       if (!product) return []
@@ -330,6 +352,47 @@ export default {
   font-size: 16px;
   font-weight: 500;
   color: #334155;
+}
+
+/* ── 銷售公司切換 ─────────────────────────── */
+.company-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.company-switcher-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8b95a8;
+  white-space: nowrap;
+}
+
+.company-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.company-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 400;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.company-tab.active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #ffffff;
+  font-weight: 500;
 }
 
 /* ── 左側品項列表 ─────────────────────────── */

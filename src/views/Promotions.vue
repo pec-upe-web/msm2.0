@@ -129,16 +129,19 @@
 
                     <!-- 照片區域 -->
                     <div v-if="todo.requiresPhoto" class="photo-area">
-                      <img
-                        v-if="todo.photoUrl"
-                        :src="todo.photoUrl"
-                        class="photo-thumb"
-                        alt="回傳照片"
-                        @click="previewUrl = todo.photoUrl"
-                      />
-                      <label v-else class="upload-label">
+                      <div v-if="todo.photos && todo.photos.length" class="photo-thumbs">
+                        <img
+                          v-for="(url, pi) in todo.photos"
+                          :key="pi"
+                          :src="url"
+                          class="photo-thumb"
+                          alt="回傳照片"
+                          @click="previewUrl = url"
+                        />
+                      </div>
+                      <label class="upload-label">
                         <camera-icon :size="13" :stroke-width="1.5" />
-                        上傳回傳照片
+                        {{ todo.photos && todo.photos.length ? '繼續上傳' : '上傳回傳照片' }}
                         <input
                           type="file"
                           accept="image/*"
@@ -286,7 +289,10 @@ export default {
       const file = e.target.files[0]
       if (!file) return
       const url = URL.createObjectURL(file)
-      this.$set(store.todos[tIdx], 'photoUrl', url)
+      if (!Array.isArray(store.todos[tIdx].photos)) {
+        this.$set(store.todos[tIdx], 'photos', [])
+      }
+      store.todos[tIdx].photos.push(url)
       e.target.value = ''
     }
   }
@@ -696,7 +702,15 @@ export default {
 /* ═══ 上傳照片 ═══════════════════════════ */
 .photo-area {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
   align-items: flex-start;
+}
+
+.photo-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .upload-label {

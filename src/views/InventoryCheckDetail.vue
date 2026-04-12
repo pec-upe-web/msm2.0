@@ -50,7 +50,7 @@
             <span class="location-tag">{{ loc.label }}</span>
             <div class="qty-row">
               <div class="qty-field">
-                <label class="qty-label">大單位</label>
+                <label class="qty-label">主數量</label>
                 <input
                   v-model.number="block.qty[loc.key].main"
                   type="number"
@@ -60,7 +60,7 @@
                 />
               </div>
               <div class="qty-field">
-                <label class="qty-label">小單位</label>
+                <label class="qty-label">小數量</label>
                 <input
                   v-model.number="block.qty[loc.key].sub"
                   type="number"
@@ -73,24 +73,35 @@
           </div>
         </div>
 
-        <!-- 照片確認區 -->
+        <!-- 照片確認區（多張） -->
         <div class="block-photo-row">
           <span class="block-photo-label">PHOTO CONFIRM</span>
           <div class="block-photo-area">
-            <img
-              v-if="block.photoUrl"
-              :src="block.photoUrl"
-              class="block-photo-thumb"
-              alt="盤點確認照片"
-              @click="previewUrl = block.photoUrl"
-            />
-            <label v-else class="block-upload-label">
+            <div class="block-photo-thumbs">
+              <img
+                v-for="(url, pi) in block.photos"
+                :key="pi"
+                :src="url"
+                class="block-photo-thumb"
+                alt="盤點確認照片"
+                @click="previewUrl = url"
+              />
+              <button
+                v-for="(url, pi) in block.photos"
+                :key="'del-' + pi"
+                class="block-photo-del"
+                @click.prevent="removeBlockPhoto(bIdx, pi)"
+                title="刪除"
+              >×</button>
+            </div>
+            <label class="block-upload-label">
               <camera-icon :size="14" :stroke-width="1.5" />
-              上傳照片確認
+              新增照片
               <input
                 type="file"
                 accept="image/*"
                 class="file-input"
+                multiple
                 @change="e => onBlockPhotoUpload(e, bIdx)"
               />
             </label>
@@ -167,8 +178,8 @@ const LOCATIONS = [
 let blockIdCounter = 1
 
 function buildPackageOptions () {
-  return [...new Set(products.map(p => p.package)), '單件', '箱裝', '卷裝', '本裝']
-    .filter((v, i, arr) => arr.indexOf(v) === i)
+  const allPackages = products.flatMap(p => Array.isArray(p.packages) ? p.packages.map(pkg => pkg.name) : [])
+  return [...new Set(allPackages)].sort()
 }
 
 function emptyQty () {
@@ -183,7 +194,7 @@ function newBlock () {
     productId: '',
     package: '單件',
     qty: emptyQty(),
-    photoUrl: null
+    photos: []
   }
 }
 
@@ -220,8 +231,8 @@ export default {
     onProductChange (bIdx) {
       const block = this.checkBlocks[bIdx]
       const product = products.find(p => p.id === block.productId)
-      if (product) {
-        this.$set(this.checkBlocks[bIdx], 'package', product.package)
+      if (product && Array.isArray(product.packages) && product.packages[0]) {
+        this.$set(this.checkBlocks[bIdx], 'package', product.packages[0].name)
       }
     },
     addBlock () {
@@ -235,15 +246,43 @@ export default {
       this.checkBlocks.splice(idx, 1)
     },
     submitCheck () {
+      const currentUser = this.$store.state.currentUser
+      const record = {
+        id: 'IC-' + Date.now(),
+        checkerId: currentUser ? currentUser.id : '',
+        checker: currentUser ? currentUser.name : '',
+        customerId: this.checkId,
+        customerName: this.customerName,
+        checkDate: this.checkDate,
+        checkBlocks: this.checkBlocks.map(b => ({
+          ...b,
+          qty: JSON.parse(JSON.stringify(b.qty)),
+          photos: Array.isArray(b.photos) && b.photos.length > 0
+            ? [...b.photos]
+            : (b.productId ? [this.productImage(b.productId)] : [])
+        })),
+        proofPhotos: [...this.proofPhotos],
+        submittedAt: new Date().toISOString()
+      }
+      this.$store.dispatch('addInventoryRecord', record)
       this.$store.dispatch('showSnackbar', { message: '盤點記錄已成功提交', type: 'success' })
       this.$router.push('/inventory-checks')
     },
     onBlockPhotoUpload (e, bIdx) {
-      const file = e.target.files[0]
-      if (!file) return
-      const url = URL.createObjectURL(file)
-      this.$set(this.checkBlocks[bIdx], 'photoUrl', url)
+      const files = Array.from(e.target.files)
+      if (!files.length) return
+      files.forEach(file => {
+        const url = URL.createObjectURL(file)
+        this.checkBlocks[bIdx].photos.push(url)
+      })
       e.target.value = ''
+    },
+    removeBlockPhoto (bIdx, pi) {
+      this.checkBlocks[bIdx].photos.splice(pi, 1)
+    },
+    productImage (productId) {
+      const p = this.products.find(prod => prod.id === productId)
+      return p && p.image ? p.image : ''
     },
     onProofPhotoUpload (e) {
       const files = Array.from(e.target.files)

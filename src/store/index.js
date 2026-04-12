@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { getCurrentUser, saveCurrentUser, logout } from '../services/auth'
 import { orders as initialOrders } from '../mock/orders'
+import { salesCompanies } from '../mock/salesCompanies'
+import { inventoryRecords as initialInventoryRecords } from '../mock/inventoryRecords'
 
 Vue.use(Vuex)
 
@@ -9,6 +11,7 @@ Vue.use(Vuex)
 const APP_VERSION = '1.2'
 const CART_KEY = 'b2b_cartItems'
 const ORDERS_KEY = 'b2b_orders'
+const INVENTORY_KEY = 'b2b_inventory_records'
 
 // ── 簡易 debounce ────────────────────────────────────────────
 function debounce (fn, delay) {
@@ -82,17 +85,22 @@ function createDebouncedSave (key, delay = 500) {
 
 const debouncedSaveCart = createDebouncedSave(CART_KEY)
 const debouncedSaveOrders = createDebouncedSave(ORDERS_KEY)
+const debouncedSaveInventory = createDebouncedSave(INVENTORY_KEY)
 
 // ── 初始化：持久化資料優先，校驗失敗則使用 mock 原始資料 ─────
 const persistedCart = loadPersisted(CART_KEY, isValidCart)
 const persistedOrders = loadPersisted(ORDERS_KEY, isValidOrders)
+const persistedInventory = loadPersisted(INVENTORY_KEY, d => Array.isArray(d))
 const initialOrdersState = persistedOrders || initialOrders.map(o => ({ ...o }))
+const initialInventoryState = persistedInventory || initialInventoryRecords.map(r => ({ ...r }))
 
 export default new Vuex.Store({
   state: {
     currentUser: getCurrentUser(),
     cartItems: persistedCart || [],
     orders: initialOrdersState,
+    selectedSalesCompany: salesCompanies[0],
+    inventoryRecords: initialInventoryState,
     snackbar: {
       message: '',
       type: 'success'
@@ -101,6 +109,9 @@ export default new Vuex.Store({
   mutations: {
     SET_CURRENT_USER (state, user) {
       state.currentUser = user
+    },
+    SET_SALES_COMPANY (state, company) {
+      state.selectedSalesCompany = company
     },
     ADD_TO_CART (state, item) {
       const existingItem = state.cartItems.find(
@@ -177,6 +188,10 @@ export default new Vuex.Store({
         debouncedSaveOrders(state.orders)
       }
     },
+    ADD_INVENTORY_RECORD (state, record) {
+      state.inventoryRecords.unshift(record)
+      debouncedSaveInventory(state.inventoryRecords)
+    },
     RESTORE_FROM_STORAGE (state) {
       const cart = loadPersisted(CART_KEY, isValidCart)
       const orders = loadPersisted(ORDERS_KEY, isValidOrders)
@@ -217,8 +232,14 @@ export default new Vuex.Store({
     updateOrderStatus ({ commit }, payload) {
       commit('UPDATE_ORDER_STATUS', payload)
     },
+    setSalesCompany ({ commit }, company) {
+      commit('SET_SALES_COMPANY', company)
+    },
     addOrder ({ commit }, order) {
       commit('ADD_ORDER', order)
+    },
+    addInventoryRecord ({ commit }, record) {
+      commit('ADD_INVENTORY_RECORD', record)
     }
   }
 })

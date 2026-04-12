@@ -33,6 +33,12 @@
           <span class="info-label">預計到貨日</span>
           <input v-model="deliveryDate" type="date" class="edit-input delivery-input" />
         </div>
+        <div class="info-item">
+          <span class="info-label">配送單位</span>
+          <select v-model="orderDeliveryUnit" class="edit-input edit-select">
+            <option v-for="du in deliveryUnitOptions" :key="du" :value="du">{{ du }}</option>
+          </select>
+        </div>
       </div>
     </section>
 
@@ -46,8 +52,7 @@
               <th>產品代號</th>
               <th>產品名稱</th>
               <th>包裝別</th>
-              <th class="col-num">主單位<br/>數量</th>
-              <th class="col-num">小單位<br/>數量</th>
+              <th class="col-num">單位<br/>數量</th>
               <th class="col-num">當前<br/>庫存</th>
               <th class="col-num">剩餘<br/>庫存</th>
               <th class="col-num">單價</th>
@@ -87,7 +92,7 @@
                     >
                       <span class="si-id">{{ p.id }}</span>
                       <span class="si-name">{{ p.name }}</span>
-                      <span class="si-price">NT$ {{ p.price }}</span>
+                      <span class="si-price">NT$ {{ p.packages && p.packages[0] ? p.packages[0].price.toLocaleString() : 0 }}</span>
                     </li>
                   </ul>
                 </div>
@@ -106,31 +111,32 @@
                 <select
                   v-model="row.package"
                   class="edit-input edit-select"
-                  :disabled="row.source === 'customer' || row.source === 'system_gift'"
+                  :disabled="row.source === 'system_gift'"
                   @change="onPackageChange(idx)"
                 >
                   <option v-for="pkg in packageOptions" :key="pkg" :value="pkg">{{ pkg }}</option>
                 </select>
               </td>
               <td class="col-num">
-                <input
-                  v-model.number="row.mainQty"
-                  type="number"
-                  min="0"
-                  class="edit-input num-input"
-                  :disabled="row.source === 'customer' || row.source === 'system_gift'"
-                  @change="onQtyChange()"
-                />
-              </td>
-              <td class="col-num">
-                <input
-                  v-model.number="row.subQty"
-                  type="number"
-                  min="0"
-                  class="edit-input num-input"
-                  :disabled="row.source === 'customer' || row.source === 'system_gift' || row.conversionRate <= 1"
-                  @blur="onSubQtyBlur(idx)"
-                />
+                <div class="qty-pair">
+                  <input
+                    v-model.number="row.mainQty"
+                    type="number"
+                    min="0"
+                    class="edit-input num-input"
+                     :disabled="row.source === 'system_gift'"
+                    @change="onQtyChange()"
+                  />
+                  <span class="qty-sep">/</span>
+                  <input
+                    v-model.number="row.subQty"
+                    type="number"
+                    min="0"
+                    class="edit-input num-input"
+                     :disabled="row.source === 'system_gift'"
+                     @input="onSubQtyInput(idx)"
+                  />
+                </div>
               </td>
               <td class="col-num">
                 <span
@@ -176,7 +182,7 @@
           </tbody>
           <tfoot>
             <tr class="add-row-foot">
-              <td colspan="11">
+              <td colspan="10">
                 <button type="button" class="add-row-btn" @click="addRow">+ 新增品項</button>
               </td>
             </tr>
@@ -254,33 +260,33 @@
           <select
             v-model="row.package"
             class="edit-input edit-select"
-            :disabled="row.source === 'customer' || row.source === 'system_gift'"
+            :disabled="row.source === 'system_gift'"
             @change="onPackageChange(idx)"
           >
             <option v-for="pkg in packageOptions" :key="pkg" :value="pkg">{{ pkg }}</option>
           </select>
         </div>
         <div class="mc-row">
-          <span class="mc-label">主單位數量</span>
-          <input
-            v-model.number="row.mainQty"
-            type="number"
-            min="0"
-            class="edit-input num-input"
-            :disabled="row.source === 'customer' || row.source === 'system_gift'"
-            @change="onQtyChange()"
-          />
-        </div>
-        <div class="mc-row">
-          <span class="mc-label">小單位數量</span>
-          <input
-            v-model.number="row.subQty"
-            type="number"
-            min="0"
-            class="edit-input num-input"
-            :disabled="row.source === 'customer' || row.source === 'system_gift' || row.conversionRate <= 1"
-            @blur="onSubQtyBlur(idx)"
-          />
+          <span class="mc-label">單位數量</span>
+          <div class="qty-pair">
+            <input
+              v-model.number="row.mainQty"
+              type="number"
+              min="0"
+              class="edit-input num-input"
+              :disabled="row.source === 'system_gift'"
+              @change="onQtyChange()"
+            />
+            <span class="qty-sep">/</span>
+            <input
+              v-model.number="row.subQty"
+              type="number"
+              min="0"
+              class="edit-input num-input"
+              :disabled="row.source === 'system_gift'"
+              @input="onSubQtyInput(idx)"
+            />
+          </div>
         </div>
         <div class="mc-row">
           <span class="mc-label">當前庫存</span>
@@ -340,26 +346,31 @@ const MOCK_STOCKS = {
   P006: 15, P007: 80, P008: 35, P009: 90, P010: 150
 }
 
-// 小單位換算係數（1 = 無小單位）
-const MOCK_CONVERSION_RATES = {
-  P001: 1, P002: 1, P003: 12, P004: 1, P005: 6,
-  P006: 1, P007: 10, P008: 1, P009: 1, P010: 1
+let rowIdCounter = 1
+
+// 根據包裝別名稱提取並計算係數
+function getConversionRateFromPackageName (packageName) {
+  if (!packageName) return 1
+  // 從包裝別名稱提取數字（如 一束/6罐 -> 6, 一打/12罐 -> 12, 一箱/24罐 -> 24, 單罐 -> 1)
+  const match = packageName.match(/(\d+)/)
+  return match ? parseInt(match[1], 10) : 1
 }
 
-let rowIdCounter = 1
+const DEFAULT_WAREHOUSE = '台北倉'
 
 function buildRow (item) {
   const product = products.find(p => p.name === item.name)
   const productId = product ? product.id : ''
   const currentStock = MOCK_STOCKS[productId] !== undefined ? MOCK_STOCKS[productId] : 0
-  const conversionRate = MOCK_CONVERSION_RATES[productId] || 1
+  const packageName = item.package || (product && Array.isArray(product.packages) && product.packages[0] ? product.packages[0].name : '')
+  const conversionRate = getConversionRateFromPackageName(packageName)
   return {
     _rowId: rowIdCounter++,
     _promoId: null,
     source: item.source,
     productId,
     name: item.name,
-    package: item.package || (product ? product.package : ''),
+    package: packageName,
     mainQty: item.qty || 0,
     subQty: 0,
     currentStock,
@@ -377,7 +388,7 @@ function newSalesRow () {
     source: 'sales_add',
     productId: '',
     name: '',
-    package: '單件',
+    package: '單罐',
     mainQty: 1,
     subQty: 0,
     currentStock: 0,
@@ -395,7 +406,7 @@ function newGiftRow (gift, promoId) {
     source: 'system_gift',
     productId: '',
     name: gift.name,
-    package: '單件',
+    package: '單罐',
     mainQty: gift.quantity,
     subQty: 0,
     currentStock: 0,
@@ -418,6 +429,7 @@ export default {
     return {
       isNew,
       deliveryDate: detail.deliveryDate || '',
+      orderDeliveryUnit: detail.deliveryUnit || DEFAULT_WAREHOUSE,
       editRows: isNew ? [newSalesRow()] : sourceItems.map(item => buildRow(item)),
       promotions,
       // 行內搜尋
@@ -450,8 +462,18 @@ export default {
       ).slice(0, 8)
     },
     packageOptions () {
-      return [...new Set(products.map(p => p.package)), '單件', '單件掃描', '箱裝', '卷裝']
-        .filter((v, i, arr) => arr.indexOf(v) === i)
+      const opts = []
+      products.forEach(p => {
+        if (Array.isArray(p.packages)) {
+          p.packages.forEach(pkg => {
+            if (!opts.includes(pkg.name)) opts.push(pkg.name)
+          })
+        }
+      })
+      return opts
+    },
+    deliveryUnitOptions () {
+      return ['台北倉', '新北倉', '桃園倉', '台中倉', '高雄倉']
     },
     totalAmount () {
       return this.editRows.reduce((sum, row) => {
@@ -494,37 +516,52 @@ export default {
       const val = (row.mainQty || 0) * (row.unitPrice || 0)
       return 'NT$ ' + val.toLocaleString()
     },
-    onSubQtyBlur (idx) {
+    normalizeSubQty (idx) {
       const row = this.editRows[idx]
-      const rate = row.conversionRate || 1
+      if (!row) return
+      const rate = Math.max(1, Number(row.conversionRate) || 1)
+      if (rate !== row.conversionRate) {
+        this.$set(this.editRows[idx], 'conversionRate', rate)
+      }
       if (rate <= 1) return
-      const sub = row.subQty || 0
+      const sub = Math.max(0, Number(row.subQty) || 0)
       if (sub >= rate) {
         this.$set(this.editRows[idx], 'mainQty', (row.mainQty || 0) + Math.floor(sub / rate))
         this.$set(this.editRows[idx], 'subQty', sub % rate)
       }
     },
+    onSubQtyInput (idx) {
+      this.normalizeSubQty(idx)
+      this.onQtyChange()
+    },
     onProductIdChange (idx) {
       const row = this.editRows[idx]
       const product = products.find(p => p.id === row.productId)
       if (product) {
+        const firstPkg = Array.isArray(product.packages) && product.packages[0] ? product.packages[0] : null
         this.$set(this.editRows[idx], 'name', product.name)
-        this.$set(this.editRows[idx], 'package', product.package)
-        this.$set(this.editRows[idx], 'unitPrice', product.price)
-        this.$set(this.editRows[idx], 'conversionRate', MOCK_CONVERSION_RATES[product.id] || 1)
+        const pkgName = firstPkg ? firstPkg.name : ''
+        this.$set(this.editRows[idx], 'package', pkgName)
+        this.$set(this.editRows[idx], 'unitPrice', firstPkg ? firstPkg.price : 0)
+        const rate = getConversionRateFromPackageName(pkgName)
+        this.$set(this.editRows[idx], 'conversionRate', rate)
         this.$set(this.editRows[idx], 'currentStock', MOCK_STOCKS[product.id] || 0)
-        this.$set(this.editRows[idx], 'noPrice', product.price === 0 && !row.isGift)
+        this.$set(this.editRows[idx], 'noPrice', !firstPkg || (firstPkg.price === 0 && !row.isGift))
+        this.normalizeSubQty(idx)
       }
       this.recalcPromotions()
     },
     onPackageChange (idx) {
       const row = this.editRows[idx]
-      if (row.source !== 'sales_add') return
       const product = products.find(p => p.id === row.productId)
-      if (product) {
-        const price = product.price || 0
+      if (product && Array.isArray(product.packages)) {
+        const pkg = product.packages.find(p => p.name === row.package)
+        const price = pkg ? pkg.price : 0
         this.$set(this.editRows[idx], 'unitPrice', price)
         this.$set(this.editRows[idx], 'noPrice', price === 0 && !row.isGift)
+        const rate = getConversionRateFromPackageName(row.package)
+        this.$set(this.editRows[idx], 'conversionRate', rate)
+        this.normalizeSubQty(idx)
       }
       this.recalcPromotions()
     },
@@ -579,7 +616,7 @@ export default {
         const newOrder = {
           orderId: newId,
           customerId,
-          status: 'confirmed',
+          status: 'transferred',
           amount,
           date: new Date().toISOString().slice(0, 10)
         }
@@ -604,13 +641,17 @@ export default {
     selectProductFromSearch (product) {
       const idx = this.productSearchIdx
       if (idx === null) return
+      const firstPkg = Array.isArray(product.packages) && product.packages[0] ? product.packages[0] : null
       this.$set(this.editRows[idx], 'productId', product.id)
       this.$set(this.editRows[idx], 'name', product.name)
-      this.$set(this.editRows[idx], 'package', product.package)
-      this.$set(this.editRows[idx], 'unitPrice', product.price)
-      this.$set(this.editRows[idx], 'conversionRate', MOCK_CONVERSION_RATES[product.id] || 1)
+      const pkgName = firstPkg ? firstPkg.name : ''
+      this.$set(this.editRows[idx], 'package', pkgName)
+      this.$set(this.editRows[idx], 'unitPrice', firstPkg ? firstPkg.price : 0)
+      const rate = getConversionRateFromPackageName(pkgName)
+      this.$set(this.editRows[idx], 'conversionRate', rate)
       this.$set(this.editRows[idx], 'currentStock', MOCK_STOCKS[product.id] || 0)
-      this.$set(this.editRows[idx], 'noPrice', product.price === 0)
+      this.$set(this.editRows[idx], 'noPrice', !firstPkg || firstPkg.price === 0)
+      this.normalizeSubQty(idx)
       this.productSearch = ''
       this.productSearchIdx = null
       this.recalcPromotions()
@@ -712,8 +753,22 @@ export default {
 }
 
 .num-input {
-  width: 68px;
+  width: 60px;
   text-align: right;
+}
+
+/* ── 合併單位數量欄 ────────────────── */
+.qty-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.qty-sep {
+  font-size: 12px;
+  color: #8b95a8;
+  flex-shrink: 0;
 }
 
 .code-input {
@@ -829,6 +884,10 @@ export default {
 }
 
 .col-num {
+  text-align: right;
+}
+
+.review-table th.col-num {
   text-align: right;
 }
 
@@ -1132,10 +1191,15 @@ export default {
     grid-template-columns: 1fr 1fr;
   }
 
+  .order-review-page {
+    padding-bottom: calc(80px + 56px + max(0px, env(safe-area-inset-bottom)));
+  }
+
   .bottom-bar {
     padding: 10px 16px;
     flex-wrap: wrap;
     gap: 10px;
+    bottom: calc(56px + max(0px, env(safe-area-inset-bottom)));
   }
 
   .bottom-actions {

@@ -8,6 +8,19 @@
     </div>
 
     <div class="top-tools">
+      <!-- 銷售公司切換 -->
+      <div class="company-switcher">
+        <span class="company-switcher-label">銷售公司</span>
+        <div class="company-tabs">
+          <button
+            v-for="co in salesCompanies"
+            :key="co.id"
+            type="button"
+            :class="['company-tab', { active: selectedSalesCompany.id === co.id }]"
+            @click="selectCompany(co)"
+          >{{ co.shortName }}</button>
+        </div>
+      </div>
       <div class="search-wrapper">
         <search-icon :size="16" :stroke-width="1.5" class="search-icon-el" />
         <input
@@ -16,17 +29,6 @@
           type="text"
           placeholder="搜尋產品名稱或產品代號"
         />
-      </div>
-      <div class="category-tabs">
-        <button
-          v-for="tab in categoryTabs"
-          :key="tab.value"
-          type="button"
-          :class="['category-tab', { active: activeCategory === tab.value }]"
-          @click="activeCategory = tab.value"
-        >
-          {{ tab.label }}
-        </button>
       </div>
     </div>
 
@@ -105,6 +107,7 @@
 
 <script>
 import { products } from '../mock/products'
+import { salesCompanies } from '../mock/salesCompanies'
 import { Search as SearchIcon } from 'lucide-vue'
 
 export default {
@@ -113,8 +116,8 @@ export default {
   data () {
     return {
       keyword: '',
-      activeCategory: 'all',
       productList: products,
+      salesCompanies,
       selectedPackageMap: {},
       quantityMap: {},
       imgReadyMap: {},
@@ -122,13 +125,6 @@ export default {
     }
   },
   computed: {
-    categoryTabs () {
-      return [
-        { label: '全部', value: 'all' },
-        { label: '單件', value: 'single' },
-        { label: '其他包裝', value: 'other' }
-      ]
-    },
     packageOptionsMap () {
       const map = {}
       this.productList.forEach(product => {
@@ -153,22 +149,22 @@ export default {
     filteredProducts () {
       const lowerKeyword = this.keyword.toLowerCase()
       return this.productList.filter(product => {
-        const byKeyword = !lowerKeyword ||
+        return !lowerKeyword ||
           product.name.toLowerCase().includes(lowerKeyword) ||
           product.id.toLowerCase().includes(lowerKeyword)
-
-        const byCategory = this.activeCategory === 'all' ||
-          (this.activeCategory === 'single' && this.isSinglePackage(product)) ||
-          (this.activeCategory === 'other' && !this.isSinglePackage(product))
-
-        return byKeyword && byCategory
       })
+    },
+    selectedSalesCompany () {
+      return this.$store.state.selectedSalesCompany
     }
   },
   created () {
     this.initializeCardState()
   },
   methods: {
+    selectCompany (co) {
+      this.$store.dispatch('setSalesCompany', co)
+    },
     initializeCardState () {
       this.productList.forEach(product => {
         const firstOption = this.packageOptionsMap[product.id][0]
@@ -186,10 +182,6 @@ export default {
     onImgReady (productId, isError) {
       this.$set(this.imgReadyMap, productId, true)
       if (isError) this.$set(this.imgErrorMap, productId, true)
-    },
-    isSinglePackage (product) {
-      const option = this.packageOptionsMap[product.id][0]
-      return option.label.includes('單件')
     },
     setSelectedPackage (productId, packageLabel) {
       this.$set(this.selectedPackageMap, productId, packageLabel)
@@ -262,6 +254,45 @@ export default {
   gap: 12px;
 }
 
+.company-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.company-switcher-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8b95a8;
+  white-space: nowrap;
+}
+
+.company-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.company-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 400;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.company-tab.active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #ffffff;
+  font-weight: 500;
+}
+
 .search-wrapper {
   position: relative;
   width: 100%;
@@ -293,29 +324,6 @@ export default {
 .search-input::placeholder {
   color: #8b95a8;
   font-weight: 400;
-}
-
-.category-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.category-tab {
-  padding: 7px 12px;
-  min-height: 44px;
-  border: 0.5px solid var(--c-border);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--c-primary);
-  font-size: 13px;
-  font-weight: 400;
-  cursor: pointer;
-}
-
-.category-tab.active {
-  border-color: var(--c-primary);
-  font-weight: 500;
 }
 
 .products-grid {

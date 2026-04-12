@@ -11,22 +11,30 @@ export default {
     status: {
       type: String,
       default: 'pending'
+    },
+    viewerRole: {
+      type: String,
+      default: ''
     }
   },
   computed: {
+    normalizedStatus () {
+      const shippedRaw = ['confirmed', 'processing', 'cancelled', 'shipped']
+      if (shippedRaw.includes(this.status)) return 'shipped'
+      if (this.viewerRole === 'customer' && this.status === 'error') return 'pending'
+      return this.status
+    },
     statusClass () {
-      return `status--${this.status}`
+      return `status--${this.normalizedStatus}`
     },
     label () {
       const labels = {
         pending: '待審核',
-        confirmed: '已確認',
-        processing: '處理中',
-        cancelled: '已取消',
+        shipped: '已出貨',
         transferred: '已拋轉',
-        error: '拋轉異常'
+        error: '拋轉失敗'
       }
-      return labels[this.status] || this.status
+      return labels[this.normalizedStatus] || this.normalizedStatus
     }
   }
 }
@@ -64,29 +72,13 @@ export default {
 }
 .status--pending .status-dot { background: #2e4f8a; }
 
-/* 已確認 */
-.status--confirmed {
+/* 已出貨 */
+.status--shipped {
   background: #edf7f1;
   color: #1a5c38;
   border-color: #a0d4b4;
 }
-.status--confirmed .status-dot { background: #2a7a4a; }
-
-/* 處理中 */
-.status--processing {
-  background: #fdf8ee;
-  color: #8a6a28;
-  border-color: #dfc97a;
-}
-.status--processing .status-dot { background: #c8980a; }
-
-/* 已取消 */
-.status--cancelled {
-  background: #fbeeee;
-  color: #8c2020;
-  border-color: #e4aaaa;
-}
-.status--cancelled .status-dot { background: #b03030; }
+.status--shipped .status-dot { background: #2a7a4a; }
 
 /* 已拋轉 */
 .status--transferred {
@@ -96,7 +88,7 @@ export default {
 }
 .status--transferred .status-dot { background: #6040b0; }
 
-/* 拋轉異常 */
+/* 拋轉失敗 */
 .status--error {
   background: #fff1f0;
   color: #cf1322;

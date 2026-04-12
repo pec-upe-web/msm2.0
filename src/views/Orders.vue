@@ -15,12 +15,7 @@
       </select>
       <select v-model="filterStatus" class="filter-select">
         <option value="">全部狀態</option>
-        <option value="pending">待審核</option>
-        <option value="confirmed">已確認</option>
-        <option value="processing">處理中</option>
-        <option value="cancelled">已取消</option>
-        <option value="transferred">已拋轉</option>
-        <option value="error">拋轉異常</option>
+        <option v-for="opt in availableStatusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
       </select>
       <div class="date-range">
         <input v-model="dateFrom" type="date" class="date-input" :max="dateTo || undefined" />
@@ -31,6 +26,15 @@
         <plus-icon :size="15" :stroke-width="1.5" />
         新增訂單
       </button>
+      <button
+        v-if="isSales"
+        type="button"
+        class="batch-transfer-btn"
+        :disabled="selectedTransferableCount === 0"
+        @click="batchTransfer"
+      >
+        批次拋單（{{ selectedTransferableCount }}）
+      </button>
     </div>
 
     <!-- 桌機表格 -->
@@ -38,6 +42,14 @@
       <table class="orders-table">
         <thead>
           <tr>
+            <th v-if="isSales" class="col-select" @click.stop>
+              <input
+                type="checkbox"
+                :checked="isCurrentPageAllSelected"
+                :indeterminate.prop="isCurrentPagePartiallySelected"
+                @change="toggleSelectCurrentPage($event.target.checked)"
+              />
+            </th>
             <th v-if="isGroupAdmin" class="col-company">銷售公司</th>
             <th>訂單編號</th>
             <th>訂單日期</th>
@@ -51,18 +63,26 @@
           <tr
             v-for="order in pagedOrders"
             :key="order.orderId"
-            :class="['table-row', { 'is-pending': order.status === 'pending' }]"
+            :class="['table-row', { 'is-pending': isPendingStatus(order.status), 'is-selected': selectedOrderIds.includes(order.orderId) }]"
             @click="goToOrder(order.orderId)"
           >
+            <td v-if="isSales" class="col-select" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedOrderIds.includes(order.orderId)"
+                :disabled="!canBatchTransfer(order)"
+                @change="toggleOrderSelected(order.orderId, $event.target.checked)"
+              />
+            </td>
             <td v-if="isGroupAdmin" class="col-company">{{ order.companyName }}</td>
             <td class="col-order-id mono">{{ order.orderId }}</td>
             <td>{{ order.date }}</td>
             <td v-if="showCustomer">{{ customerMap[order.customerId] || order.customerId }}</td>
-            <td><status-badge :status="order.status" /></td>
+            <td><status-badge :status="order.status" :viewer-role="currentUser.role" /></td>
             <td class="col-amount">NT$ {{ order.amount.toLocaleString() }}</td>
             <td v-if="isSales" class="col-action" @click.stop>
               <button
-                v-if="order.status === 'pending'"
+                v-if="canBatchTransfer(order)"
                 type="button"
                 class="review-btn"
                 @click="$router.push('/orders/' + order.orderId + '/review')"
@@ -81,11 +101,19 @@
       <li
         v-for="order in pagedOrders"
         :key="order.orderId"
-        :class="['mobile-card', { 'is-pending': order.status === 'pending' }]"
+        :class="['mobile-card', { 'is-pending': isPendingStatus(order.status), 'is-selected': selectedOrderIds.includes(order.orderId) }]"
         @click="goToOrder(order.orderId)"
       >
         <div class="mobile-top">
-          <status-badge :status="order.status" />
+          <label v-if="isSales" class="mobile-check" @click.stop>
+            <input
+              type="checkbox"
+              :checked="selectedOrderIds.includes(order.orderId)"
+              :disabled="!canBatchTransfer(order)"
+              @change="toggleOrderSelected(order.orderId, $event.target.checked)"
+            />
+          </label>
+          <status-badge :status="order.status" :viewer-role="currentUser.role" />
           <span class="mobile-order-id mono">{{ order.orderId }}</span>
         </div>
         <div class="mobile-kv">
@@ -106,7 +134,7 @@
             <span class="kv-value kv-amount">NT$ {{ order.amount.toLocaleString() }}</span>
           </div>
         </div>
-        <div v-if="isSales && order.status === 'pending'" class="mobile-actions">
+        <div v-if="isSales && canBatchTransfer(order)" class="mobile-actions">
           <button
             type="button"
             class="review-btn-mobile"
@@ -216,7 +244,8 @@ export default {
       customers,
       showModal: false,
       modalSearch: '',
-      selectedCustomerId: null
+      selectedCustomerId: null,
+      selectedOrderIds: []
     }
   },
   computed: {
@@ -232,8 +261,24 @@ export default {
     isSales () {
       return this.currentUser.role === 'sales'
     },
+    availableStatusOptions () {
+      if (this.currentUser.role === 'customer') {
+        return [
+          { value: 'pending', label: '待審核' },
+          { value: 'transferred', label: '已拋轉' },
+          { value: 'shipped', label: '已出貨' }
+        ]
+      }
+      return [
+        { value: 'pending', label: '待審核' },
+        { value: 'transferred', label: '已拋轉' },
+        { value: 'error', label: '拋轉失敗' },
+        { value: 'shipped', label: '已出貨' }
+      ]
+    },
     colSpan () {
       let cols = 4
+      if (this.isSales) cols++
       if (this.isGroupAdmin) cols++
       if (this.showCustomer) cols++
       if (this.isSales) cols++
@@ -251,7 +296,8 @@ export default {
     filteredOrders () {
       return this.$store.state.orders.filter(order => {
         if (this.filterCompany && order.companyName !== this.filterCompany) return false
-        if (this.filterStatus && order.status !== this.filterStatus) return false
+        const displayStatus = this.normalizeStatus(order.status)
+        if (this.filterStatus && displayStatus !== this.filterStatus) return false
         if (this.dateFrom && order.date < this.dateFrom) return false
         if (this.dateTo && order.date > this.dateTo) return false
         return true
@@ -263,6 +309,22 @@ export default {
     pagedOrders () {
       const start = (this.currentPage - 1) * PAGE_SIZE
       return this.filteredOrders.slice(start, start + PAGE_SIZE)
+    },
+    currentPageTransferableOrders () {
+      return this.pagedOrders.filter(order => this.canBatchTransfer(order))
+    },
+    isCurrentPageAllSelected () {
+      if (this.currentPageTransferableOrders.length === 0) return false
+      return this.currentPageTransferableOrders.every(order => this.selectedOrderIds.includes(order.orderId))
+    },
+    isCurrentPagePartiallySelected () {
+      if (this.currentPageTransferableOrders.length === 0) return false
+      const selectedCount = this.currentPageTransferableOrders.filter(order => this.selectedOrderIds.includes(order.orderId)).length
+      return selectedCount > 0 && selectedCount < this.currentPageTransferableOrders.length
+    },
+    selectedTransferableCount () {
+      const idSet = new Set(this.selectedOrderIds)
+      return this.$store.state.orders.filter(order => idSet.has(order.orderId) && this.canBatchTransfer(order)).length
     },
     pageNumbers () {
       const range = []
@@ -287,6 +349,54 @@ export default {
     dateTo () { this.currentPage = 1 }
   },
   methods: {
+    canBatchTransfer (order) {
+      if (!order) return false
+      const s = order.status
+      return s === 'pending' || s === 'error'
+    },
+    normalizeStatus (status) {
+      const shippedRaw = ['confirmed', 'processing', 'cancelled', 'shipped']
+      if (shippedRaw.includes(status)) return 'shipped'
+      if (this.currentUser.role === 'customer' && status === 'error') return 'pending'
+      return status
+    },
+    isPendingStatus (status) {
+      return this.normalizeStatus(status) === 'pending'
+    },
+    toggleOrderSelected (orderId, checked) {
+      if (checked) {
+        if (!this.selectedOrderIds.includes(orderId)) {
+          this.selectedOrderIds.push(orderId)
+        }
+        return
+      }
+      this.selectedOrderIds = this.selectedOrderIds.filter(id => id !== orderId)
+    },
+    toggleSelectCurrentPage (checked) {
+      const pageIds = this.currentPageTransferableOrders.map(order => order.orderId)
+      if (checked) {
+        const merged = new Set([...this.selectedOrderIds, ...pageIds])
+        this.selectedOrderIds = Array.from(merged)
+        return
+      }
+      this.selectedOrderIds = this.selectedOrderIds.filter(id => !pageIds.includes(id))
+    },
+    batchTransfer () {
+      if (this.selectedTransferableCount === 0) return
+      const targetIds = new Set(this.selectedOrderIds)
+      let successCount = 0
+      this.$store.state.orders.forEach(order => {
+        if (!targetIds.has(order.orderId)) return
+        if (!this.canBatchTransfer(order)) return
+        this.$store.dispatch('updateOrderStatus', { orderId: order.orderId, status: 'transferred' })
+        successCount++
+      })
+      this.selectedOrderIds = []
+      this.$store.dispatch('showSnackbar', {
+        message: `批次拋單完成，共 ${successCount} 筆已拋轉`,
+        type: 'success'
+      })
+    },
     goToOrder (orderId) {
       this.$router.push(`/orders/${orderId}`)
     },
@@ -337,7 +447,6 @@ export default {
 }
 
 .add-order-btn {
-  margin-left: auto;
   height: 40px;
   padding: 0 20px;
   background: var(--c-primary);
@@ -348,6 +457,24 @@ export default {
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.batch-transfer-btn {
+  height: 40px;
+  padding: 0 16px;
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.batch-transfer-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 .filter-select {
@@ -426,6 +553,11 @@ export default {
   text-align: right;
 }
 
+.col-select {
+  width: 44px;
+  text-align: center;
+}
+
 .col-company {
   color: var(--c-text-sub);
   font-size: 13px;
@@ -455,6 +587,10 @@ export default {
 
 .table-row:hover td {
   background: #EEF3FB !important;
+}
+
+.table-row.is-selected td {
+  background: #ecfdf5 !important;
 }
 
 .col-order-id {
@@ -523,6 +659,11 @@ tr.is-pending td:first-child {
   gap: 8px;
 }
 
+.mobile-check {
+  display: inline-flex;
+  align-items: center;
+}
+
 .mobile-order-id {
   font-size: 14px;
   font-weight: 500;
@@ -579,6 +720,10 @@ tr.is-pending td:first-child {
 
 .mobile-card.is-pending {
   border-left: 4px solid var(--c-primary);
+}
+
+.mobile-card.is-selected {
+  border-color: #10b981;
 }
 
 .mobile-empty {
@@ -780,7 +925,12 @@ tr.is-pending td:first-child {
   }
 
   .add-order-btn {
-    margin-left: 0;
+    width: 100%;
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .batch-transfer-btn {
     width: 100%;
     min-height: 44px;
     height: 44px;

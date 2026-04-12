@@ -57,19 +57,21 @@
 
     <!-- 最近盤點記錄 -->
     <section class="recent-section">
-      <h3 class="section-title">最近盤點記錄</h3>
+      <h3 class="section-title">我的盤點記錄</h3>
       <ul class="recent-list">
         <li
-          v-for="(record, idx) in recentRecords"
-          :key="idx"
+          v-for="(record, idx) in myRecords"
+          :key="record.id || idx"
           class="recent-item"
+          @click="$router.push('/inventory-checks/record/' + record.id)"
         >
           <div class="recent-left">
             <span class="recent-customer">{{ record.customerName }}</span>
             <span class="recent-checker">{{ record.checker }}</span>
           </div>
-          <span class="recent-date">{{ record.date }}</span>
+          <span class="recent-date">{{ record.checkDate }}</span>
         </li>
+        <li v-if="myRecords.length === 0" class="recent-empty">尚無盤點記錄</li>
       </ul>
     </section>
 
@@ -78,6 +80,7 @@
 
 <script>
 import { customers } from '../mock/customers'
+import { getCurrentUser } from '../services/auth'
 import {
   Search as SearchIcon,
   MapPin as MapPinIcon
@@ -112,22 +115,16 @@ export default {
       userLat: null,
       userLng: null,
       customerList: customers.map(c => ({ ...c, distance: null })),
-      recentRecords: [
-        { date: '2026-04-05', customerName: '大洋貿易', checker: '李業務' },
-        { date: '2026-04-03', customerName: '綠能物流', checker: '張業務' },
-        { date: '2026-03-29', customerName: '迅速供應', checker: '李業務' },
-        { date: '2026-03-25', customerName: '金堡科技', checker: '王業務' },
-        { date: '2026-03-20', customerName: '雄獅建材', checker: '張業務' }
-      ],
-      lastCheckMap: {
-        C001: '2026-04-05',
-        C003: '2026-04-03',
-        C002: '2026-03-29',
-        C004: '2026-03-25'
-      }
+      currentUser: getCurrentUser()
     }
   },
   computed: {
+    myRecords () {
+      if (!this.currentUser) return []
+      return this.$store.state.inventoryRecords
+        .filter(r => r.checkerId === this.currentUser.id)
+        .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''))
+    },
     filteredCustomers () {
       if (!this.keyword) return this.customerList
       const kw = this.keyword.toLowerCase()
@@ -147,8 +144,9 @@ export default {
     }
   },
   methods: {
-    lastCheckDate (id) {
-      return this.lastCheckMap[id] || null
+    lastCheckDate (customerId) {
+      const record = this.myRecords.find(r => r.customerId === customerId)
+      return record ? record.checkDate : null
     },
     useGPS () {
       if (!navigator.geolocation) {
@@ -399,6 +397,7 @@ export default {
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 0.5px solid #F1F5F9;
+  cursor: pointer;
   transition: background 0.1s;
 }
 
@@ -433,5 +432,13 @@ export default {
   font-weight: 400;
   color: #8b95a8;
   flex-shrink: 0;
+}
+
+.recent-empty {
+  padding: 28px;
+  text-align: center;
+  color: #8b95a8;
+  font-size: 14px;
+  font-weight: 400;
 }
 </style>

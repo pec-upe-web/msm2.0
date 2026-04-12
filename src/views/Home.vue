@@ -47,7 +47,7 @@
             <li v-for="order in recentOrders" :key="order.orderId" class="order-item">
               <div class="order-left">
                 <span class="order-id">{{ order.orderId }}</span>
-                <status-badge :status="order.status" />
+                <status-badge :status="order.status" :viewer-role="currentUser.role" />
               </div>
               <span class="order-amount">NT$ {{ order.amount.toLocaleString() }}</span>
             </li>
@@ -87,7 +87,6 @@
                 <span class="sched-dot"></span>
                 <span v-if="idx < schedule.length - 1" class="sched-line"></span>
               </div>
-              <span class="appt-time">{{ appt.time }}</span>
               <div class="appt-info">
                 <span class="appt-customer">{{ appt.customer }}</span>
                 <span class="appt-address">{{ appt.address }}</span>
@@ -96,6 +95,37 @@
           </ul>
         </section>
 
+      </div>
+
+      <!-- 個人業績圖（by 業務員） -->
+      <div class="sales-chart-grid">
+        <section class="dashboard-card chart-card">
+          <div class="card-title-row">
+            <span class="card-title-dot"></span>
+            <h3 class="card-title">當月目前業績圖</h3>
+            <span class="card-eyebrow">PERSONAL MTD</span>
+          </div>
+          <p class="chart-meta">業務員：{{ currentUser.name }}</p>
+          <img class="chart-image" :src="salesTrendChartSrc" :alt="currentUser.name + ' 當月業績趨勢圖'" />
+          <div class="chart-kpi-row">
+            <span class="kpi-label">目前業績</span>
+            <span class="kpi-value">NT$ {{ currentSalesAmount.toLocaleString() }}</span>
+          </div>
+        </section>
+
+        <section class="dashboard-card chart-card">
+          <div class="card-title-row">
+            <span class="card-title-dot"></span>
+            <h3 class="card-title">目標差距圖</h3>
+            <span class="card-eyebrow">GAP TO TARGET</span>
+          </div>
+          <p class="chart-meta">目前達成：{{ achievementRate }}%</p>
+          <img class="chart-image" :src="salesGapChartSrc" :alt="currentUser.name + ' 業績目標差距圖'" />
+          <div class="chart-kpi-row">
+            <span class="kpi-label">尚差目標</span>
+            <span class="kpi-value is-gap">NT$ {{ gapAmount.toLocaleString() }}</span>
+          </div>
+        </section>
       </div>
 
       <!-- 快速入口 -->
@@ -189,7 +219,6 @@
 
 <script>
 import { getCurrentUser } from '../services/auth'
-import { orders } from '../mock/orders'
 import { announcements } from '../mock/announcements'
 import {
   Package as PackageIcon,
@@ -215,14 +244,17 @@ export default {
     }
   },
   computed: {
+    ordersData () {
+      return this.$store.state.orders || []
+    },
     currentUser () {
       return getCurrentUser() || { role: '', company: '', name: '' }
     },
     recentOrders () {
-      return orders.slice(0, 3)
+      return this.ordersData.slice(0, 3)
     },
     pendingCount () {
-      return orders.filter(o => o.status === 'pending').length
+      return this.ordersData.filter(o => o.status === 'pending').length
     },
     todayLabel () {
       const days = ['日', '一', '二', '三', '四', '五', '六']
@@ -231,6 +263,48 @@ export default {
       const dd = String(now.getDate()).padStart(2, '0')
       return `${mm}/${dd}（週${days[now.getDay()]}）`
     },
+    monthPrefix () {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      return `${year}-${month}`
+    },
+    userSeed () {
+      const key = this.currentUser.id || this.currentUser.name || 'sales'
+      return key.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 17
+    },
+    monthlyOrderAmount () {
+      return this.ordersData
+        .filter(o => (o.date || '').startsWith(this.monthPrefix))
+        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0)
+    },
+    monthlyTargetAmount () {
+      return 160000 + this.userSeed * 3500
+    },
+    currentSalesAmount () {
+      const personalRatio = 0.62 + (this.userSeed % 6) * 0.05
+      const projected = Math.round(this.monthlyOrderAmount * personalRatio)
+      return Math.max(projected, 38000 + this.userSeed * 1800)
+    },
+    achievementRate () {
+      return Math.round((this.currentSalesAmount / this.monthlyTargetAmount) * 100)
+    },
+    gapAmount () {
+      return Math.max(0, this.monthlyTargetAmount - this.currentSalesAmount)
+    },
+    trendSeries () {
+      const current = this.currentSalesAmount
+      const week1 = Math.round(current * 0.26)
+      const week2 = Math.round(current * 0.55)
+      const week3 = Math.round(current * 0.8)
+      return [week1, week2, week3, current]
+    },
+    salesTrendChartSrc () {
+      return this.buildTrendChart(this.trendSeries, this.monthlyTargetAmount)
+    },
+    salesGapChartSrc () {
+      return this.buildGapChart(this.currentSalesAmount, this.monthlyTargetAmount)
+    }
   },
   mounted () {
     document.addEventListener('keydown', this.handleKeydown)
@@ -246,6 +320,80 @@ export default {
     document.removeEventListener('click', this.handleOutsideClick)
   },
   methods: {
+    buildTrendChart (values, target) {
+      const width = 560
+      const height = 220
+      const left = 42
+      const right = 20
+      const top = 16
+      const bottom = 36
+      const maxY = Math.max(target, ...values, 1)
+      const usableW = width - left - right
+      const usableH = height - top - bottom
+      const x = idx => left + (usableW / (values.length - 1)) * idx
+      const y = val => top + usableH - (val / maxY) * usableH
+      const points = values.map((v, i) => `${x(i)},${y(v)}`).join(' ')
+      const area = `${left},${top + usableH} ${points} ${left + usableW},${top + usableH}`
+      const targetY = y(target)
+      const yTicks = [0, 0.5, 1].map(r => Math.round(maxY * r))
+      const yLabels = yTicks.map(v => {
+        const py = y(v)
+        return `<text x="6" y="${py + 4}" fill="#94A3B8" font-size="10">${Math.round(v / 1000)}k</text>`
+      }).join('')
+      const weekLabels = ['W1', 'W2', 'W3', 'W4'].map((w, i) => {
+        return `<text x="${x(i) - 10}" y="208" fill="#64748B" font-size="11">${w}</text>`
+      }).join('')
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.03"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="${width}" height="${height}" fill="#FFFFFF"/>
+        <line x1="${left}" y1="${top + usableH}" x2="${left + usableW}" y2="${top + usableH}" stroke="#E2E8F0"/>
+        <line x1="${left}" y1="${top}" x2="${left}" y2="${top + usableH}" stroke="#E2E8F0"/>
+        <line x1="${left}" y1="${targetY}" x2="${left + usableW}" y2="${targetY}" stroke="#F59E0B" stroke-dasharray="5 4"/>
+        <text x="${left + usableW - 92}" y="${targetY - 6}" fill="#B45309" font-size="10">目標 ${Math.round(target / 1000)}k</text>
+        <polygon points="${area}" fill="url(#trendFill)"/>
+        <polyline points="${points}" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        ${values.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="3.8" fill="#2563EB"/>`).join('')}
+        ${yLabels}
+        ${weekLabels}
+      </svg>`
+      return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+    },
+    buildGapChart (current, target) {
+      const width = 560
+      const height = 220
+      const pad = 28
+      const barW = 160
+      const maxY = Math.max(target, current, 1)
+      const chartTop = 20
+      const chartBottom = 170
+      const y = val => chartBottom - (val / maxY) * (chartBottom - chartTop)
+      const bars = [
+        { label: '目前', value: current, color: '#2563EB', x: pad + 80 },
+        { label: '目標', value: target, color: '#F59E0B', x: pad + 320 }
+      ]
+      const barSvg = bars.map(bar => {
+        const h = chartBottom - y(bar.value)
+        const valueText = Math.round(bar.value / 1000) + 'k'
+        return `<g>
+          <rect x="${bar.x}" y="${y(bar.value)}" width="${barW}" height="${h}" rx="8" fill="${bar.color}" fill-opacity="0.9"/>
+          <text x="${bar.x + 58}" y="${y(bar.value) - 8}" fill="#334155" font-size="11">${valueText}</text>
+          <text x="${bar.x + 64}" y="192" fill="#64748B" font-size="11">${bar.label}</text>
+        </g>`
+      }).join('')
+      const gap = Math.max(0, target - current)
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <rect x="0" y="0" width="${width}" height="${height}" fill="#FFFFFF"/>
+        <line x1="${pad}" y1="${chartBottom}" x2="${width - pad}" y2="${chartBottom}" stroke="#E2E8F0"/>
+        ${barSvg}
+        <text x="${pad}" y="18" fill="#B91C1C" font-size="12">差距 NT$ ${gap.toLocaleString()}</text>
+      </svg>`
+      return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+    },
     openNotice (notice) {
       this.modal = { visible: true, notice }
     },
@@ -319,7 +467,7 @@ export default {
   grid-auto-rows: 1fr;
 }
 .sales-top-grid {
-  grid-template-columns: 2fr 3fr;
+  grid-template-columns: 1fr 1fr;
   align-items: stretch;
 }
 /* ── 卡片通用 ─────────────────────────────── */
@@ -526,6 +674,61 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* ── Sales 業績圖區 ─────────────────────── */
+.sales-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.chart-card {
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-meta {
+  margin: 0;
+  font-size: 12px;
+  color: #64748B;
+  min-height: 18px;
+}
+
+.chart-image {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+  border: 0.5px solid #E2E8F0;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.chart-kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 0.5px solid #E2E8F0;
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.kpi-value {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.kpi-value.is-gap {
+  color: #B91C1C;
 }
 
 .section-head {
@@ -857,7 +1060,8 @@ export default {
 @media (max-width: 768px) {
   .quick-entry-section,
   .dashboard-grid,
-  .overview-grid {
+  .overview-grid,
+  .sales-chart-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
