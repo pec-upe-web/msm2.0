@@ -264,7 +264,7 @@ export default {
 .company-switcher-label {
   font-size: 12px;
   font-weight: 500;
-  color: #8b95a8;
+  color: var(--c-text-faint);
   white-space: nowrap;
 }
 
@@ -277,11 +277,11 @@ export default {
 .company-tab {
   padding: 5px 14px;
   border-radius: 20px;
-  border: 1px solid #E2E8F0;
-  background: #ffffff;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
   font-size: 13px;
   font-weight: 400;
-  color: #64748B;
+  color: var(--c-text-muted);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -289,7 +289,7 @@ export default {
 .company-tab.active {
   border-color: var(--c-primary);
   background: var(--c-primary);
-  color: #ffffff;
+  color: var(--c-surface);
   font-weight: 500;
 }
 
@@ -303,7 +303,7 @@ export default {
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94A3B8;
+  color: var(--c-text-faint);
   pointer-events: none;
   flex-shrink: 0;
 }
@@ -314,15 +314,15 @@ export default {
   padding: 0 12px 0 38px;
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #334155;
+  background: var(--c-surface);
+  color: var(--c-text-body);
   font-size: 14px;
   font-weight: 400;
   outline: none;
 }
 
 .search-input::placeholder {
-  color: #8b95a8;
+  color: var(--c-text-faint);
   font-weight: 400;
 }
 
@@ -333,10 +333,10 @@ export default {
 }
 
 .product-card {
-  border: 0.5px solid #E2E8F0;
+  border: 0.5px solid var(--c-border);
   border-top: 2px solid var(--c-primary);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   overflow: hidden;
   transition: border-color 0.1s;
   min-width: 0;
@@ -353,16 +353,16 @@ export default {
 .product-img-wrap {
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: #F8FAFC;
+  background: var(--c-stripe);
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  border-bottom: 0.5px solid #F1F5F9;
+  border-bottom: 0.5px solid var(--c-divider);
 }
 
 /* 骨架屏閃爍 */
 .product-img-wrap.is-skeleton {
-  background: #F1F5F9;
+  background: var(--c-bg);
 }
 
 .product-img-wrap.is-skeleton::after {
@@ -399,7 +399,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F1F5F9;
+  background: var(--c-bg);
 }
 
 .placeholder-watermark {
@@ -419,7 +419,7 @@ export default {
 
 .product-name {
   margin: 0;
-  color: #334155;
+  color: var(--c-text-body);
   font-size: 14px;
   font-weight: 500;
   display: -webkit-box;
@@ -458,7 +458,7 @@ export default {
   padding: 6px 10px;
   border: 0.5px solid var(--c-border);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--c-surface);
   color: var(--c-primary);
   font-size: 12px;
   font-weight: 400;
@@ -484,8 +484,8 @@ export default {
   padding: 2px 6px;
   border: 0.5px solid var(--c-border);
   border-radius: 4px;
-  background: #F8FAFC;
-  color: #64748B;
+  background: var(--c-stripe);
+  color: var(--c-text-muted);
   font-size: 11px;
   font-weight: 400;
   white-space: nowrap;
@@ -499,7 +499,7 @@ export default {
 }
 
 .price-text {
-  color: #334155;
+  color: var(--c-text-body);
   font-size: 14px;
   font-weight: 500;
   font-family: var(--font-mono);

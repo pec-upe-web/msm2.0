@@ -475,7 +475,7 @@ export default {
   border: 1px solid var(--c-border);
   border-top: 2px solid var(--c-primary);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -617,7 +617,7 @@ export default {
   padding: 24px;
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
 }
 
 .hero-title {
@@ -636,25 +636,19 @@ export default {
   color: var(--c-text-muted);
 }
 
-.overview-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
 .overview-item {
+
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 16px;
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   transition: background 0.1s;
 }
-
 .overview-item:hover {
-  background: #f8fafc;
+  background: var(--c-stripe);
 }
 
 .overview-label {

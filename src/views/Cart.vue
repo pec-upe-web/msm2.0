@@ -324,7 +324,7 @@ export default {
 }
 
 .empty-text {
-  color: #7f8797;
+  color: var(--c-text-faint);
   font-size: 16px;
   font-weight: 400;
 }
@@ -351,7 +351,7 @@ export default {
   margin: 0 0 14px;
   font-size: 16px;
   font-weight: 500;
-  color: #334155;
+  color: var(--c-text-title);
 }
 
 /* ── 銷售公司切換 ─────────────────────────── */
@@ -366,7 +366,7 @@ export default {
 .company-switcher-label {
   font-size: 12px;
   font-weight: 500;
-  color: #8b95a8;
+  color: var(--c-text-faint);
   white-space: nowrap;
 }
 
@@ -379,8 +379,8 @@ export default {
 .company-tab {
   padding: 5px 14px;
   border-radius: 20px;
-  border: 1px solid #E2E8F0;
-  background: #ffffff;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
   font-size: 13px;
   font-weight: 400;
   color: #64748B;
@@ -391,7 +391,7 @@ export default {
 .company-tab.active {
   border-color: var(--c-primary);
   background: var(--c-primary);
-  color: #ffffff;
+  color: var(--c-surface);
   font-weight: 500;
 }
 
@@ -410,7 +410,7 @@ export default {
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--c-surface);
 }
 
 .cart-item {
@@ -418,7 +418,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-bottom: 0.5px solid #F1F5F9;
+  border-bottom: 0.5px solid var(--c-stripe);
   transition: background-color 0.15s ease;
 }
 
@@ -427,7 +427,7 @@ export default {
 }
 
 .cart-item:hover {
-  background-color: #F9FBFE;
+  background-color: var(--c-hover);
 }
 
 /* ── 縮圖列 ───────────────────────────────── */
@@ -443,8 +443,8 @@ export default {
   flex-shrink: 0;
   border-radius: 2px;
   overflow: hidden;
-  background: #F8FAFC;
-  border: 0.5px solid #E2E8F0;
+  background: var(--c-bg);
+  border: 0.5px solid var(--c-border);
   position: relative;
 }
 
@@ -482,7 +482,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F1F5F9;
+  background: var(--c-stripe);
 }
 
 .thumb-watermark {
@@ -527,7 +527,7 @@ export default {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #1E293B;
+  color: var(--c-text-title);
 }
 
 .remove-btn {
@@ -563,7 +563,7 @@ export default {
 }
 
 .confirm-dialog {
-  background: #ffffff;
+  background: var(--c-surface);
   border-radius: 10px;
   border: 0.5px solid var(--c-border);
   border-top: 2px solid var(--c-primary);
@@ -576,7 +576,7 @@ export default {
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 500;
-  color: #1E293B;
+  color: var(--c-text-title);
   text-align: center;
 }
 
@@ -600,7 +600,7 @@ export default {
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
   background: transparent;
-  color: #334155;
+  color: var(--c-text-title);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -609,7 +609,7 @@ export default {
 }
 
 .confirm-cancel:hover {
-  background: #F1F5F9;
+  background: var(--c-stripe);
 }
 
 .confirm-ok {
@@ -692,10 +692,10 @@ export default {
 .package-select {
   width: min(280px, 100%);
   min-width: 240px;
-  border: 0.5px solid #e2e8f0;
+  border: 0.5px solid var(--c-border);
   border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+  background: var(--c-surface);
+  color: var(--c-text-title);
   font-family: 'Noto Sans TC', var(--font-sans);
   font-size: 13px;
   font-weight: 400;
@@ -759,7 +759,7 @@ export default {
   margin-top: 16px;
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 14px;
 }
 
@@ -767,7 +767,7 @@ export default {
   margin: 0 0 12px;
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--c-text-title);
 }
 
 .promo-item {
@@ -798,7 +798,7 @@ export default {
 }
 
 .promo-pending {
-  color: #7f8797;
+  color: var(--c-text-faint);
 }
 
 .gift-list {
@@ -825,7 +825,7 @@ export default {
 .summary-card {
   border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -839,13 +839,13 @@ export default {
 }
 
 .summary-label {
-  color: #4b5568;
+  color: var(--c-text-muted);
   font-size: 14px;
   font-weight: 400;
 }
 
 .summary-value {
-  color: #334155;
+  color: var(--c-text-title);
   font-size: 15px;
   font-weight: 500;
   font-family: var(--font-mono);
@@ -857,7 +857,7 @@ export default {
   padding: 11px 0;
   text-align: center;
   background: var(--c-primary);
-  color: #ffffff;
+  color: var(--c-surface);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -876,7 +876,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #ffffff;
+  background: var(--c-surface);
   border-top: 0.5px solid var(--c-border);
   gap: 12px;
   z-index: 100;
@@ -891,13 +891,13 @@ export default {
 .mobile-label {
   font-size: 12px;
   font-weight: 400;
-  color: #7f8797;
+  color: var(--c-text-faint);
 }
 
 .mobile-total {
   font-size: 16px;
   font-weight: 500;
-  color: #334155;
+  color: var(--c-text-title);
   font-family: var(--font-mono);
 }
 

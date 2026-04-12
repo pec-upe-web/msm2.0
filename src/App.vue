@@ -3,12 +3,15 @@
     <app-snackbar :message="snackbar.message" :type="snackbar.type" />
     <app-loading :show="false" />
     <router-view />
+    <ThemeSwitcher />
   </div>
 </template>
 
 <script>
+import ThemeSwitcher from './components/ThemeSwitcher.vue'
 export default {
   name: 'App',
+  components: { ThemeSwitcher },
   computed: {
     snackbar () {
       return this.$store.state.snackbar
@@ -22,19 +25,75 @@ export default {
    全域設計 Token — B2B 下單系統
 ═══════════════════════════════════════════════ */
 :root {
-  /* 色彩 */
-  --c-primary:       #1A2F5E;
-  --c-primary-light: #EEF3FB;
-  --c-bg:            #F1F5F9;
-  --c-surface:       #FFFFFF;
-  --c-border:        #CBD5E1;
-  --c-divider:       #F1F5F9;
-  --c-stripe:        #F9FBFE;
-  --c-text-title:    #0F172A;
-  --c-text-body:     #334155;
-  --c-text-muted:    #64748B;
-  --c-text-faint:    #94A3B8;
-  --c-danger:        #8C2020;
+    /* 狀態徽章色盤（主題可覆蓋） */
+    --badge-pending-bg: #eef3fb;
+    --badge-pending-color: #1a2f5e;
+    --badge-pending-border: #c4d4ec;
+    --badge-pending-dot: #2e4f8a;
+    --badge-shipped-bg: #edf7f1;
+    --badge-shipped-color: #1a5c38;
+    --badge-shipped-border: #a0d4b4;
+    --badge-shipped-dot: #2a7a4a;
+    --badge-transferred-bg: #f2eefb;
+    --badge-transferred-color: #4a2a8c;
+    --badge-transferred-border: #c0aae8;
+    --badge-transferred-dot: #6040b0;
+    --badge-error-bg: #fff1f0;
+    --badge-error-color: #cf1322;
+    --badge-error-border: #ffa39e;
+    --badge-error-dot: #f5222d;
+  /* 主題色盤（四組） */
+  /* 商務深藍 */
+  --business-primary: #2C3E50;
+  --business-bg: #F4F7F6;
+  --business-surface: #FFFFFF;
+  --business-stripe: #F9FBFE;
+  --business-border: #CBD5E1;
+  --business-divider: #F1F5F9;
+  --business-primary-light: #EEF3FB;
+  --business-hover: #EEF3FB;
+  /* 森林禪意 */
+  --forest-primary: #3E4E50;
+  --forest-bg: #FCFAF2;
+  --forest-surface: #FFFFFF;
+  --forest-stripe: #F5F3E7;
+  --forest-border: #D6D2C4;
+  --forest-divider: #EDE9DD;
+  --forest-primary-light: #E8ECE9;
+  --forest-hover: #E8ECE9;
+  /* 霧灰石板 */
+  --slate-primary: #546E7A;
+  --slate-bg: #ECEFF1;
+  --slate-surface: #FFFFFF;
+  --slate-stripe: #F5F7F9;
+  --slate-border: #B0BEC5;
+  --slate-divider: #CFD8DC;
+  --slate-primary-light: #E3E8EB;
+  --slate-hover: #E3E8EB;
+  /* 午夜莫蘭迪 */
+  --morandi-primary: #4A4E69;
+  --morandi-bg: #F2E9E4;
+  --morandi-surface: #FFFFFF;
+  --morandi-stripe: #F7F3F0;
+  --morandi-border: #D6D1D8;
+  --morandi-divider: #E9E4ED;
+  --morandi-primary-light: #E6E6F2;
+  --morandi-hover: #E6E6F2;
+  /* 全站主題變數（預設商務深藍） */
+  --c-primary: var(--business-primary);
+  --c-bg: var(--business-bg);
+  --c-surface: var(--business-surface);
+  --c-stripe: var(--business-stripe);
+  --c-border: var(--business-border);
+  --c-divider: var(--business-divider);
+  --c-primary-light: var(--business-primary-light);
+  --c-hover: var(--business-hover);
+  /* 文字色不隨主題變 */
+  --c-text-title: #0F172A;
+  --c-text-body: #334155;
+  --c-text-muted: #64748B;
+  --c-text-faint: #94A3B8;
+  --c-danger: #8C2020;
 
   /* 字型 */
   --font-serif:  'Noto Serif TC', Georgia, serif;
@@ -63,7 +122,7 @@ export default {
 
 body {
   margin: 0;
-  background: #f0f7ff;
+  background: var(--c-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -77,7 +136,7 @@ body {
   line-height: 1.6;
   color: var(--c-text-body);
   background:
-    radial-gradient(ellipse 80% 60% at 50% 40%, #f0f7ff 0%, #ffffff 100%);
+    radial-gradient(ellipse 80% 60% at 50% 40%, var(--c-bg) 0%, var(--c-surface) 100%);
   position: relative;
   overflow-x: hidden;
 }
@@ -91,15 +150,15 @@ body {
   pointer-events: none;
   background-image:
     /* 交點精密圓點 */
-    radial-gradient(circle 1px, #ffffff 1px, transparent 1px),
-    /* 淺天藍連線 — 水平 */
-    linear-gradient(rgba(186, 230, 253, 0.30) 0.5px, transparent 0.5px),
-    /* 淺天藍連線 — 垂直 */
-    linear-gradient(90deg, rgba(186, 230, 253, 0.30) 0.5px, transparent 0.5px),
-    /* 大幾何三角裝飾 — 左上 */
-    linear-gradient(135deg, rgba(59, 130, 246, 0.04) 25%, transparent 25%),
-    /* 大幾何三角裝飾 — 右下 */
-    linear-gradient(315deg, rgba(59, 130, 246, 0.03) 20%, transparent 20%);
+    radial-gradient(circle 1px, var(--c-surface) 1px, transparent 1px),
+    /* 主題亮色連線 — 水平 */
+    linear-gradient(rgba(var(--c-primary-rgb,44,62,80), 0.18) 0.5px, transparent 0.5px),
+    /* 主題亮色連線 — 垂直 */
+    linear-gradient(90deg, rgba(var(--c-primary-rgb,44,62,80), 0.18) 0.5px, transparent 0.5px),
+    /* 幾何三角裝飾 — 左上 */
+    linear-gradient(135deg, rgba(var(--c-primary-rgb,44,62,80), 0.04) 25%, transparent 25%),
+    /* 幾何三角裝飾 — 右下 */
+    linear-gradient(315deg, rgba(var(--c-primary-rgb,44,62,80), 0.03) 20%, transparent 20%);
   background-size:
     48px 48px,
     48px 48px,
@@ -117,11 +176,11 @@ body {
   pointer-events: none;
   background:
     /* 右上柔光 */
-    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(186, 230, 253, 0.25) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(var(--c-primary-rgb,44,62,80), 0.12) 0%, transparent 70%),
     /* 左下柔光 */
-    radial-gradient(ellipse 45% 50% at 15% 85%, rgba(191, 219, 254, 0.20) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 50% at 15% 85%, rgba(var(--c-primary-rgb,44,62,80), 0.10) 0%, transparent 70%),
     /* 底部流動波紋 1 */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='none' stroke='%23bae6fd' stroke-width='0.8' opacity='0.18' d='M0,224C240,160,480,288,720,224C960,160,1200,288,1440,224'/%3E%3Cpath fill='none' stroke='%23bae6fd' stroke-width='0.6' opacity='0.12' d='M0,256C240,192,480,320,720,256C960,192,1200,320,1440,256'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='none' stroke='rgb(var(--c-primary-rgb,44,62,80))' stroke-width='0.8' opacity='0.18' d='M0,224C240,160,480,288,720,224C960,160,1200,288,1440,224'/%3E%3Cpath fill='none' stroke='rgb(var(--c-primary-rgb,44,62,80))' stroke-width='0.6' opacity='0.12' d='M0,256C240,192,480,320,720,256C960,192,1200,320,1440,256'/%3E%3C/svg%3E");
   background-size: 100% 100%, 100% 100%, 100% 320px;
   background-position: center, center, bottom;
   background-repeat: no-repeat, no-repeat, repeat-x;
@@ -240,7 +299,7 @@ body {
   border: none;
   border-radius: var(--r-md);
   background: var(--c-primary);
-  color: #FFFFFF;
+  color: var(--c-surface);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;

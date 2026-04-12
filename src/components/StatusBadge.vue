@@ -41,6 +41,7 @@ export default {
 </script>
 
 <style scoped>
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -64,38 +65,39 @@ export default {
   flex-shrink: 0;
 }
 
+
 /* 待審核 */
 .status--pending {
-  background: #eef3fb;
-  color: #1a2f5e;
-  border-color: #c4d4ec;
+  background: var(--badge-pending-bg);
+  color: var(--badge-pending-color);
+  border-color: var(--badge-pending-border);
 }
-.status--pending .status-dot { background: #2e4f8a; }
+.status--pending .status-dot { background: var(--badge-pending-dot); }
 
 /* 已出貨 */
 .status--shipped {
-  background: #edf7f1;
-  color: #1a5c38;
-  border-color: #a0d4b4;
+  background: var(--badge-shipped-bg);
+  color: var(--badge-shipped-color);
+  border-color: var(--badge-shipped-border);
 }
-.status--shipped .status-dot { background: #2a7a4a; }
+.status--shipped .status-dot { background: var(--badge-shipped-dot); }
 
 /* 已拋轉 */
 .status--transferred {
-  background: #f2eefb;
-  color: #4a2a8c;
-  border-color: #c0aae8;
+  background: var(--badge-transferred-bg);
+  color: var(--badge-transferred-color);
+  border-color: var(--badge-transferred-border);
 }
-.status--transferred .status-dot { background: #6040b0; }
+.status--transferred .status-dot { background: var(--badge-transferred-dot); }
 
 /* 拋轉失敗 */
 .status--error {
-  background: #fff1f0;
-  color: #cf1322;
-  border-color: #ffa39e;
+  background: var(--badge-error-bg);
+  color: var(--badge-error-color);
+  border-color: var(--badge-error-border);
 }
 .status--error .status-dot {
-  background: #f5222d;
+  background: var(--badge-error-dot);
   animation: dot-breathe 1.6s ease-in-out infinite;
 }
 

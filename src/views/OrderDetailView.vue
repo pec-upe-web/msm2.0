@@ -40,9 +40,9 @@ export default {
 
 .order-card {
   padding: 20px;
-  background: #ffffff;
+  background: var(--c-surface);
   border-radius: 16px;
-  border: 1px solid #e3eaf5;
+  border: 1px solid var(--c-border);
   display: grid;
   gap: 14px;
 }
@@ -50,14 +50,14 @@ export default {
 .row {
   display: flex;
   gap: 10px;
-  color: #4a556a;
+  color: var(--c-text-body);
 }
 
 .link-button {
   align-self: flex-start;
   padding: 10px 16px;
-  background: #1a2540;
-  color: #dde4f0;
+  background: var(--c-primary);
+  color: var(--c-surface);
   border-radius: 12px;
   text-decoration: none;
   font-weight: 500;

@@ -8,7 +8,7 @@
         <span class="brand-name">行動訂單管理系統</span>
       </div>
       <nav class="layout-tabs">
-        <router-link
+          <router-link
           v-for="tab in visibleTabs"
           :key="tab.path"
           :to="tab.path"
@@ -112,7 +112,7 @@ export default {
   justify-content: space-between;
   padding: 0 32px;
   height: 60px;
-  background: #1a2540;
+    background: var(--c-primary);
   border-bottom: none;
   position: sticky;
   top: 0;
@@ -132,7 +132,7 @@ export default {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #10B981;
+    background: var(--c-primary-light);
   flex-shrink: 0;
   animation: pulse-live 2.4s ease-in-out infinite;
 }
@@ -141,7 +141,7 @@ export default {
   font-family: var(--font-mono);
   font-size: 15px;
   font-weight: 500;
-  color: #FFFFFF;
+    color: var(--c-surface);
   letter-spacing: 0.06em;
   white-space: nowrap;
   text-decoration: none;
@@ -149,14 +149,14 @@ export default {
   transition: color 0.2s, text-shadow 0.2s;
 }
 .brand-logo:hover {
-  color: #e0f0ff;
+    color: var(--c-primary-light);
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .brand-sep {
   width: 1px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.22);
+    background: var(--c-border);
   flex-shrink: 0;
 }
 
@@ -164,7 +164,7 @@ export default {
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.55);
+    color: var(--c-primary-light);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -185,13 +185,14 @@ export default {
   align-items: center;
   gap: 6px;
   padding: 0 18px;
-  color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.12);
   text-decoration: none;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  transition: color 0.15s;
+  transition: color 0.15s, text-shadow 0.15s;
   white-space: nowrap;
   position: relative;
 }
@@ -202,12 +203,30 @@ export default {
 }
 
 .tab-item:hover {
-  color: #FFFFFF;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 0 2px #fff;
 }
 
 .tab-item.is-active {
-  color: #FFFFFF;
-  font-weight: 600;
+  color: #fff;
+  font-weight: 700;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+}
+
+.tab-item.is-active::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--c-primary) 80%, var(--c-primary-dark, #003366) 100%);
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
 }
 
 .tab-item.is-active::after {
@@ -217,7 +236,7 @@ export default {
   left: 18px;
   right: 18px;
   height: 2px;
-  background: rgba(255, 255, 255, 0.9);
+    background: var(--c-surface);
   border-radius: 2px 2px 0 0;
 }
 

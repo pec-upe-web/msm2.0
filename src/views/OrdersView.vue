@@ -44,9 +44,9 @@ export default {
 
 .order-card {
   padding: 18px;
-  background: #ffffff;
+  background: var(--c-surface);
   border-radius: 16px;
-  border: 1px solid #e3eaf5;
+  border: 1px solid var(--c-border);
 }
 
 .order-header {
@@ -67,8 +67,8 @@ export default {
 .link-button {
   display: inline-block;
   padding: 10px 16px;
-  background: #1a2540;
-  color: #dde4f0;
+  background: var(--c-primary);
+  color: var(--c-surface);
   border-radius: 12px;
   text-decoration: none;
   font-weight: 500;

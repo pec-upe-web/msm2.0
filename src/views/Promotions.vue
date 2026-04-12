@@ -254,6 +254,30 @@ export default {
       return map
     }
   },
+  watch: {
+    filteredPromos (list) {
+      // 篩選結果變動時自動選第一個
+      if (list.length > 0) {
+        this.selectedId = list[0].id
+      } else {
+        this.selectedId = null
+      }
+    },
+    // 切換 tab 也觸發
+    activeTab () {
+      if (this.filteredPromos.length > 0) {
+        this.selectedId = this.filteredPromos[0].id
+      } else {
+        this.selectedId = null
+      }
+    }
+  },
+  mounted () {
+    // 初次進入自動選第一個
+    if (this.filteredPromos.length > 0) {
+      this.selectedId = this.filteredPromos[0].id
+    }
+  },
   methods: {
     progressPercent (promo) {
       if (!promo.stores.length) return 0
@@ -310,7 +334,7 @@ export default {
   height: calc(100vh - 60px);
   margin: -32px;
   overflow: hidden;
-  background: #F1F5F9;
+  background: var(--c-bg);
 }
 
 /* ═══ 左側面板 ═══════════════════════════ */
@@ -319,8 +343,8 @@ export default {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border-right: 0.5px solid #E2E8F0;
+  background: var(--c-surface);
+  border-right: 0.5px solid var(--c-border);
   overflow: hidden;
 }
 
@@ -352,11 +376,11 @@ export default {
 /* 篩選 Tab 列：首個 Tab 左側與標題左對齊（padding-left: 24px） */
 .filter-tabs {
   display: flex;
-  border-bottom: 0.5px solid #E2E8F0;
+  border-bottom: 0.5px solid var(--c-border);
   padding: 0 24px 0 16px;
   gap: 0;
   flex-shrink: 0;
-  background: #ffffff;
+  background: var(--c-surface);
 }
 
 .tab-btn {
@@ -486,7 +510,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #F1F5F9;
+  background: var(--c-bg);
 }
 
 /* 手機返回按鈕（桌機隱藏） */
@@ -499,6 +523,7 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  background: var(--c-bg);
 }
 
 /* 詳情標頭 */
@@ -540,7 +565,7 @@ export default {
 
 .section-divider {
   height: 0.5px;
-  background: #E2E8F0;
+  background: var(--c-divider);
   margin: 16px 0;
 }
 
@@ -564,9 +589,9 @@ export default {
 .store-search {
   height: 32px;
   padding: 0 10px;
-  border: 0.5px solid #E2E8F0;
+  border: 0.5px solid var(--c-border);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--c-surface);
   color: #334155;
   font-size: 13px;
   font-weight: 400;
@@ -578,18 +603,18 @@ export default {
 .store-list {
   display: flex;
   flex-direction: column;
-  border: 0.5px solid #E2E8F0;
+  border: 0.5px solid var(--c-border);
   border-radius: 8px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--c-surface);
 }
 
 /* 店家卡片 */
 .store-card {
   border-radius: 0;
-  background: #ffffff;
+  background: var(--c-surface);
   overflow: hidden;
-  border-bottom: 0.5px solid #F1F5F9;
+  border-bottom: 0.5px solid var(--c-divider);
 }
 
 .store-card:last-child {
@@ -597,7 +622,7 @@ export default {
 }
 
 .store-card:nth-child(even) {
-  background: #F9FBFE;
+  background: var(--c-stripe);
 }
 
 .store-row {
@@ -653,8 +678,8 @@ export default {
 
 /* ═══ 待辦事項 ═══════════════════════════ */
 .todo-list {
-  border-top: 0.5px solid #E2E8F0;
-  background: #ffffff;
+  border-top: 0.5px solid var(--c-border);
+  background: var(--c-surface);
 }
 
 .todo-item {

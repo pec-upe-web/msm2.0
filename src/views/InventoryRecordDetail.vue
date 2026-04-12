@@ -182,16 +182,16 @@ export default {
 
 .not-found {
   text-align: center;
-  color: #8b95a8;
+  color: var(--c-text-faint);
   font-size: 14px;
   padding: 40px 0;
 }
 
 /* ── 資訊卡片 ─────────────────────── */
 .info-card {
-  border: 0.5px solid #E2E8F0;
+  border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 18px;
 }
 
@@ -210,13 +210,13 @@ export default {
 .info-label {
   font-size: 12px;
   font-weight: 400;
-  color: #8b95a8;
+  color: var(--c-text-faint);
 }
 
 .info-value {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--c-text-title);
 }
 
 /* ── 盤點區塊列表 ─────────────────── */
@@ -227,9 +227,9 @@ export default {
 }
 
 .check-block {
-  border: 0.5px solid #E2E8F0;
+  border: 0.5px solid var(--c-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -245,14 +245,14 @@ export default {
 .block-product {
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
+  color: var(--c-text-title);
 }
 
 .block-package {
   font-size: 12px;
   font-weight: 400;
   color: #64748b;
-  background: #F1F5F9;
+  background: var(--c-stripe);
   border-radius: 4px;
   padding: 2px 8px;
 }
@@ -265,8 +265,8 @@ export default {
 }
 
 .location-item {
-  background: #F8FAFC;
-  border: 0.5px solid #E2E8F0;
+  background: var(--c-bg);
+  border: 0.5px solid var(--c-border);
   border-radius: 6px;
   padding: 10px 12px;
   display: flex;
