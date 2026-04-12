@@ -229,7 +229,17 @@ export default {
       const product = this.productList.find(p => p.id === productId)
       if (!product) return []
       if (Array.isArray(product.packages) && product.packages.length > 0) {
-        return product.packages.map(pkg => ({
+        // 自訂排序：單罐、一束、一打、一箱，其餘照原順序
+        const order = ['單罐', '一束/6罐', '一打/12罐', '一箱/24罐']
+        const sorted = [...product.packages].sort((a, b) => {
+          const idxA = order.findIndex(o => a.name.includes(o))
+          const idxB = order.findIndex(o => b.name.includes(o))
+          if (idxA === -1 && idxB === -1) return 0
+          if (idxA === -1) return 1
+          if (idxB === -1) return -1
+          return idxA - idxB
+        })
+        return sorted.map(pkg => ({
           label: pkg.name,
           price: Number(pkg.price) || 0
         }))

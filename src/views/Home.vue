@@ -966,7 +966,7 @@ export default {
   font-size: 11px;
   font-weight: 500;
   color: #fff;
-  background: #5a2a0c;
+  background: var(--c-primary);
   border: none;
   border-radius: 4px;
   padding: 2px 8px;
