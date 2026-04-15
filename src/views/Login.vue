@@ -92,7 +92,7 @@ import {
 } from 'lucide-vue'
 
 const roleRedirectMap = {
-  customer: '/products',
+  customer: '/',
   sales: '/',
   company_admin: '/orders',
   group_admin: '/orders'

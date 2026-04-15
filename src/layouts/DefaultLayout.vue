@@ -66,7 +66,7 @@ export default {
   data () {
     return {
       tabs: [
-        { label: '首頁', path: '/', icon: Home },
+        { label: '首頁', path: '/', roles: ['customer', 'sales'], icon: Home },
         { label: '產品', path: '/products', roles: ['customer'], icon: Package },
         { label: '購物車', path: '/cart', roles: ['customer'], icon: ShoppingCart },
         { label: '訂單', path: '/orders', icon: FileText },

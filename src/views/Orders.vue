@@ -562,6 +562,11 @@ export default {
   text-align: right;
 }
 
+.orders-table th.col-amount,
+.orders-table td.col-amount {
+  text-align: right;
+}
+
 .col-select {
   width: 44px;
   text-align: center;
