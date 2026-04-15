@@ -215,7 +215,6 @@
                 <span class="sched-dot"></span>
                 <span v-if="idx < allSchedule.length - 1" class="sched-line"></span>
               </div>
-              <span class="appt-time">{{ appt.time }}</span>
               <div class="appt-info">
                 <span class="appt-customer">{{ appt.customer }}</span>
                 <span class="appt-address">{{ appt.address }}</span>
