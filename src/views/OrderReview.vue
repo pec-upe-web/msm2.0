@@ -368,7 +368,7 @@ let rowIdCounter = 1
 // 根據包裝別名稱提取並計算係數
 function getConversionRateFromPackageName (packageName) {
   if (!packageName) return 1
-  // 從包裝別名稱提取數字（如 一束/6罐 -> 6, 一打/12罐 -> 12, 一箱/24罐 -> 24, 單罐 -> 1)
+  // 從包裝別名稱提取數字（如 束/6罐 -> 6, 打/12罐 -> 12, 箱/24罐 -> 24, 單罐 -> 1)
   const match = packageName.match(/(\d+)/)
   return match ? parseInt(match[1], 10) : 1
 }
