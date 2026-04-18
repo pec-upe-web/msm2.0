@@ -443,14 +443,14 @@ export default {
 }
 
 .drawer-item.is-active {
-  background: var(--c-primary-light, #EEF3FB);
-  color: var(--c-primary);
+  background: var(--c-primary);
+  color: #fff;
   font-weight: 500;
-  border-left-color: var(--c-primary);
+  border-left-color: transparent;
 }
 
 .drawer-item.is-active .drawer-item-icon {
-  color: var(--c-primary);
+  color: #fff;
 }
 
 /* ── 抽屜底部 ──────────────────────────── */
