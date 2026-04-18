@@ -79,7 +79,7 @@
             <td>{{ order.date }}</td>
             <td v-if="showCustomer">{{ customerMap[order.customerId] || order.customerId }}</td>
             <td><status-badge :status="order.status" :viewer-role="currentUser.role" /></td>
-            <td class="col-amount">NT$ {{ order.amount.toLocaleString() }}</td>
+            <td class="col-amount">$ {{ order.amount.toLocaleString() }}</td>
             <td v-if="isSales" class="col-action" @click.stop>
               <button
                 v-if="canBatchTransfer(order)"
@@ -131,7 +131,7 @@
           </div>
           <div class="kv-item">
             <span class="kv-label">金額</span>
-            <span class="kv-value kv-amount">NT$ {{ order.amount.toLocaleString() }}</span>
+            <span class="kv-value kv-amount">$ {{ order.amount.toLocaleString() }}</span>
           </div>
         </div>
         <div v-if="isSales && canBatchTransfer(order)" class="mobile-actions">

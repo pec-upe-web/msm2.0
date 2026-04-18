@@ -17,7 +17,7 @@ export default {
   data () {
     return {
       promotions: [
-        { id: 'P-01', title: '春季滿額折扣', description: '單筆訂單滿 NT$ 5,000 即可享 5% 折扣。', type: '限時' },
+        { id: 'P-01', title: '春季滿額折扣', description: '單筆訂單滿 $ 5,000 即可享 5% 折扣。', type: '限時' },
         { id: 'P-02', title: '首單贈品方案', description: '新客戶首單贈送專屬商務筆記本。', type: '新客戶' },
         { id: 'P-03', title: '量販採購優惠', description: '採購 10 件以上產品，可申請專屬折扣。', type: '企業' }
       ]

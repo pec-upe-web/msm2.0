@@ -7,7 +7,7 @@
         <div class="product-info">
           <h3>{{ product.name }}</h3>
           <p>包裝：{{ product.package }}</p>
-          <p>單價：NT$ {{ product.price }}</p>
+          <p>單價：$ {{ product.price }}</p>
         </div>
       </div>
     </div>

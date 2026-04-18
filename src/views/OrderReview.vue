@@ -92,7 +92,7 @@
                     >
                       <span class="si-id">{{ p.id }}</span>
                       <span class="si-name">{{ p.name }}</span>
-                      <span class="si-price">NT$ {{ p.packages && p.packages[0] ? p.packages[0].price.toLocaleString() : 0 }}</span>
+                      <span class="si-price">$ {{ p.packages && p.packages[0] ? p.packages[0].price.toLocaleString() : 0 }}</span>
                     </li>
                   </ul>
                 </div>
@@ -250,7 +250,7 @@
               >
                 <span class="si-id">{{ p.id }}</span>
                 <span class="si-name">{{ p.name }}</span>
-                <span class="si-price">NT$ {{ p.price }}</span>
+                <span class="si-price">$ {{ p.price }}</span>
               </li>
             </ul>
           </div>
@@ -334,7 +334,7 @@
     <div class="bottom-bar">
       <div class="total-area">
         <span class="total-label">訂單金額小計</span>
-        <span class="total-amount">NT$ {{ totalAmount.toLocaleString() }}</span>
+        <span class="total-amount">$ {{ totalAmount.toLocaleString() }}</span>
       </div>
       <div class="bottom-actions">
         <button type="button" class="submit-btn" @click="submitOrder">確認拋轉</button>
@@ -546,7 +546,7 @@ export default {
     },
     rowSubtotal (row) {
       const val = (row.mainQty || 0) * (row.unitPrice || 0)
-      return 'NT$ ' + val.toLocaleString()
+      return '$ ' + val.toLocaleString()
     },
     normalizeSubQty (idx) {
       const row = this.editRows[idx]

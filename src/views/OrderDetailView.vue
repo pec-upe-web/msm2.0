@@ -5,7 +5,7 @@
       <div class="row"><span>客戶：</span> {{ customerName }}</div>
       <div class="row"><span>狀態：</span> <status-badge :status="order.status" /></div>
       <div class="row"><span>日期：</span> {{ order.date }}</div>
-      <div class="row"><span>金額：</span> NT$ {{ order.amount }}</div>
+      <div class="row"><span>金額：</span> $ {{ order.amount }}</div>
     </div>
     <router-link class="link-button" :to="reviewLink">前往審核</router-link>
   </div>

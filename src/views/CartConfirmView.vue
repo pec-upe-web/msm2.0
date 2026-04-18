@@ -5,7 +5,7 @@
       <p>以下為客戶訂單確認畫面，請確認內容無誤後送出。</p>
       <div class="summary">
         <div>項目總數：3</div>
-        <div>訂單金額：NT$ 5,220</div>
+        <div>訂單金額：$ 5,220</div>
       </div>
       <button class="submit-button">確認送出</button>
     </div>

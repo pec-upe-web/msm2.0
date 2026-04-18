@@ -108,7 +108,7 @@
           <!-- 操作區 -->
           <div class="action-group">
             <div class="price-qty-row">
-              <span class="price-text">NT$ {{ selectedOption(product.id).price }}</span>
+              <span class="price-text">$ {{ selectedOption(product.id).price }}</span>
               <div class="quantity-control">
                 <button type="button" class="quantity-btn" @click="decreaseQty(product.id)">-</button>
                 <span class="quantity-value">{{ quantityMap[product.id] }}</span>

@@ -10,7 +10,7 @@
         <div class="order-detail">
           <div>客戶：{{ customerName(order) }}</div>
           <div>日期：{{ order.date }}</div>
-          <div>金額：NT$ {{ order.amount }}</div>
+          <div>金額：$ {{ order.amount }}</div>
         </div>
         <router-link :to="`/orders/${order.orderId}`" class="link-button">檢視詳情</router-link>
       </div>

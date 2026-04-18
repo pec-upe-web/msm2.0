@@ -49,7 +49,7 @@
                 <span class="order-id">{{ order.orderId }}</span>
                 <status-badge :status="order.status" :viewer-role="currentUser.role" />
               </div>
-              <span class="order-amount">NT$ {{ order.amount.toLocaleString() }}</span>
+              <span class="order-amount">$ {{ order.amount.toLocaleString() }}</span>
             </li>
           </ul>
           <div class="card-footer">
@@ -112,7 +112,7 @@
           <img class="chart-image" :src="salesTrendChartSrc" :alt="currentUser.name + ' 當月業績趨勢圖'" />
           <div class="chart-kpi-row">
             <span class="kpi-label">目前業績</span>
-            <span class="kpi-value">NT$ {{ currentSalesAmount.toLocaleString() }}</span>
+            <span class="kpi-value">$ {{ currentSalesAmount.toLocaleString() }}</span>
           </div>
         </section>
 
@@ -126,7 +126,7 @@
           <img class="chart-image" :src="salesGapChartSrc" :alt="currentUser.name + ' 業績目標差距圖'" />
           <div class="chart-kpi-row">
             <span class="kpi-label">尚差目標</span>
-            <span class="kpi-value is-gap">NT$ {{ gapAmount.toLocaleString() }}</span>
+            <span class="kpi-value is-gap">$ {{ gapAmount.toLocaleString() }}</span>
           </div>
         </section>
       </div>
@@ -434,7 +434,7 @@ export default {
         <rect x="0" y="0" width="${width}" height="${height}" fill="#FFFFFF"/>
         <line x1="${pad}" y1="${chartBottom}" x2="${width - pad}" y2="${chartBottom}" stroke="#E2E8F0"/>
         ${barSvg}
-        <text x="${pad}" y="18" fill="#B91C1C" font-size="12">差距 NT$ ${gap.toLocaleString()}</text>
+        <text x="${pad}" y="18" fill="#B91C1C" font-size="12">差距 $ ${gap.toLocaleString()}</text>
       </svg>`
       return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
     },

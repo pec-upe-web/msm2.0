@@ -23,7 +23,7 @@
             </div>
             <div class="item-right">
               <span class="item-qty">× {{ item.quantity }}</span>
-              <span class="item-subtotal">NT$ {{ item.unitPrice * item.quantity }}</span>
+              <span class="item-subtotal">$ {{ item.unitPrice * item.quantity }}</span>
             </div>
           </li>
         </ul>
@@ -44,7 +44,7 @@
 
         <div class="total-row">
           <span class="total-label">訂單總金額</span>
-          <span class="total-value">NT$ {{ subtotal }}</span>
+          <span class="total-value">$ {{ subtotal }}</span>
         </div>
       </section>
 

@@ -87,8 +87,8 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.package }}</td>
                 <td class="col-num">{{ item.qty }}</td>
-                <td class="col-num mono">{{ item.isGift ? '—' : ('NT$ ' + item.unitPrice.toLocaleString()) }}</td>
-                <td class="col-num mono">{{ item.isGift ? '—' : ('NT$ ' + (item.unitPrice * item.qty).toLocaleString()) }}</td>
+                <td class="col-num mono">{{ item.isGift ? '—' : ('$ ' + item.unitPrice.toLocaleString()) }}</td>
+                <td class="col-num mono">{{ item.isGift ? '—' : ('$ ' + (item.unitPrice * item.qty).toLocaleString()) }}</td>
                 <td><span v-if="item.isGift" class="gift-tag">贈品</span></td>
                 <td><span class="source-badge" :class="'source--' + item.source">{{ sourceLabel(item.source) }}</span></td>
               </tr>
@@ -113,11 +113,11 @@
               </div>
               <div class="mic-kv">
                 <span class="mic-label">單價</span>
-                <span class="mic-value">{{ item.isGift ? '—' : 'NT$ ' + item.unitPrice }}</span>
+                <span class="mic-value">{{ item.isGift ? '—' : '$ ' + item.unitPrice }}</span>
               </div>
               <div class="mic-kv">
                 <span class="mic-label">小計</span>
-                <span class="mic-value mic-total">{{ item.isGift ? '—' : 'NT$ ' + (item.unitPrice * item.qty) }}</span>
+                <span class="mic-value mic-total">{{ item.isGift ? '—' : '$ ' + (item.unitPrice * item.qty) }}</span>
               </div>
             </div>
             <div class="mic-foot">
@@ -152,8 +152,8 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.package }}</td>
                 <td class="col-num">{{ item.qty }}</td>
-                <td class="col-num mono">{{ item.isGift ? '—' : ('NT$ ' + item.unitPrice.toLocaleString()) }}</td>
-                <td class="col-num mono">{{ item.isGift ? '—' : ('NT$ ' + (item.unitPrice * item.qty).toLocaleString()) }}</td>
+                <td class="col-num mono">{{ item.isGift ? '—' : ('$ ' + item.unitPrice.toLocaleString()) }}</td>
+                <td class="col-num mono">{{ item.isGift ? '—' : ('$ ' + (item.unitPrice * item.qty).toLocaleString()) }}</td>
                 <td><span v-if="item.isGift" class="gift-tag">贈品</span></td>
                 <td><span class="source-badge" :class="'source--' + item.source">{{ sourceLabel(item.source) }}</span></td>
               </tr>
@@ -178,11 +178,11 @@
               </div>
               <div class="mic-kv">
                 <span class="mic-label">單價</span>
-                <span class="mic-value">{{ item.isGift ? '—' : 'NT$ ' + item.unitPrice }}</span>
+                <span class="mic-value">{{ item.isGift ? '—' : '$ ' + item.unitPrice }}</span>
               </div>
               <div class="mic-kv">
                 <span class="mic-label">小計</span>
-                <span class="mic-value mic-total">{{ item.isGift ? '—' : 'NT$ ' + (item.unitPrice * item.qty) }}</span>
+                <span class="mic-value mic-total">{{ item.isGift ? '—' : '$ ' + (item.unitPrice * item.qty) }}</span>
               </div>
             </div>
             <div class="mic-foot">

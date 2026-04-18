@@ -72,7 +72,7 @@
                         :value="opt.label"
                       >{{ opt.label }}</option>
                     </select>
-                    <span class="unit-price">NT$ {{ item.unitPrice }}</span>
+                    <span class="unit-price">$ {{ item.unitPrice }}</span>
                   </div>
                   <div class="item-right-col">
                     <button type="button" class="remove-btn" @click="askRemove(item)">
@@ -85,7 +85,7 @@
                         <span class="qty-value">{{ item.quantity }}</span>
                         <button type="button" class="qty-btn" @click="changeQty(item, 1)">+</button>
                       </div>
-                      <span class="subtotal-text">NT$ {{ item.unitPrice * item.quantity }}</span>
+                      <span class="subtotal-text">$ {{ item.unitPrice * item.quantity }}</span>
                     </div>
                   </div>
                 </div>
@@ -123,7 +123,7 @@
           <div class="summary-card">
             <div class="summary-row">
               <span class="summary-label">商品小計</span>
-              <span class="summary-value">NT$ {{ subtotal }}</span>
+              <span class="summary-value">$ {{ subtotal }}</span>
             </div>
             <router-link class="checkout-btn" to="/cart/confirm">前往確認</router-link>
           </div>
@@ -134,7 +134,7 @@
       <div class="mobile-summary">
         <div class="mobile-left">
           <span class="mobile-label">商品小計</span>
-          <span class="mobile-total">NT$ {{ subtotal }}</span>
+          <span class="mobile-total">$ {{ subtotal }}</span>
         </div>
         <router-link class="checkout-btn" to="/cart/confirm">前往確認</router-link>
       </div>
