@@ -88,6 +88,7 @@
               >{{ packageOptionsMap[product.id][0].label }}</span>
             </div>
             <p class="product-id">{{ product.id }}</p>
+            <p v-if="product.description" class="product-desc">{{ product.description }}</p>
             <div class="pkg-area">
               <select
                 v-if="packageOptionsMap[product.id].length > 1"
@@ -522,6 +523,26 @@ export default {
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.04em;
+}
+
+.product-desc {
+  margin: 2px 0 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--c-text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 格狀模式只顯示 1 行 */
+.view-grid .product-desc {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 10px;
 }
 
 .pkg-area {

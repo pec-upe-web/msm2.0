@@ -2,6 +2,7 @@ export const products = [
   {
     id: 'P001',
     name: '台灣啤酒（罐裝）',
+    description: '鋁罐 330ml・成分：水、麥芽、啤酒花・酒精濃度 4.5%・低溫釀造清爽口感',
     packages: [
       { name: '束/6罐', price: 160 },
       { name: '打/12罐', price: 310 },
@@ -13,6 +14,7 @@ export const products = [
   {
     id: 'P002',
     name: '麥香紅茶（利樂包）',
+    description: '利樂包 375ml・成分：水、紅茶萃取液、砂糖・無添加防腐劑・常溫保存',
     packages: [
       { name: '束/6罐', price: 100 },
       { name: '打/12罐', price: 195 },
@@ -24,6 +26,7 @@ export const products = [
   {
     id: 'P003',
     name: '維他露 O 鋁罐',
+    description: '鋁罐 340ml・成分：水、砂糖、維生素 C、檸檬酸・碳酸飲料・清涼消暑',
     packages: [
       { name: '束/6罐', price: 115 },
       { name: '打/12罐', price: 220 },
@@ -35,6 +38,7 @@ export const products = [
   {
     id: 'P004',
     name: '統一奶茶（寶特瓶）',
+    description: 'PET 瓶 500ml・成分：水、紅茶萃取液、全脂奶粉、砂糖・香滑奶茶風味',
     packages: [
       { name: '束/6罐', price: 200 },
       { name: '打/12罐', price: 380 },
@@ -46,6 +50,7 @@ export const products = [
   {
     id: 'P005',
     name: '舒跑運動飲料（瓶裝）',
+    description: 'PET 瓶 590ml・成分：水、葡萄糖、電解質（鈉、鉀、鎂）・低糖配方・補充水分',
     packages: [
       { name: '束/6罐', price: 128 },
       { name: '打/12罐', price: 248 },
@@ -57,6 +62,7 @@ export const products = [
   {
     id: 'P006',
     name: '黑松沙士（罐裝）',
+    description: '鋁罐 330ml・成分：水、砂糖、二氧化碳、沙士香料・台灣經典碳酸飲料',
     packages: [
       { name: '束/6罐', price: 112 },
       { name: '打/12罐', price: 218 },
@@ -68,6 +74,7 @@ export const products = [
   {
     id: 'P007',
     name: '御茶園每朝健康綠茶',
+    description: 'PET 瓶 550ml・成分：水、綠茶萃取液・無糖配方・兒茶素豐富・冷熱皆宜',
     packages: [
       { name: '束/6罐', price: 142 },
       { name: '打/12罐', price: 278 },
@@ -79,6 +86,7 @@ export const products = [
   {
     id: 'P008',
     name: '光泉鮮乳（瓶裝）',
+    description: 'HDPE 瓶 936ml・成分：100% 生乳・全脂鮮乳・鈣質豐富・需冷藏 7°C 以下',
     packages: [
       { name: '束/6罐', price: 480 },
       { name: '打/12罐', price: 940 },
@@ -90,6 +98,7 @@ export const products = [
   {
     id: 'P009',
     name: '可口可樂（罐裝）',
+    description: '鋁罐 330ml・成分：水、砂糖、焦糖色素、磷酸、天然香料・碳酸飲料',
     packages: [
       { name: '束/6罐', price: 120 },
       { name: '打/12罐', price: 235 },
@@ -101,6 +110,7 @@ export const products = [
   {
     id: 'P010',
     name: '百事可樂（寶特瓶）',
+    description: 'PET 瓶 600ml・成分：水、砂糖、焦糖色素、磷酸、咖啡因・碳酸飲料',
     packages: [
       { name: '束/6罐', price: 215 },
       { name: '打/12罐', price: 390 },
