@@ -89,17 +89,18 @@
             </div>
             <p class="product-id">{{ product.id }}</p>
             <div class="pkg-area">
-              <div v-if="packageOptionsMap[product.id].length > 1" class="package-tabs">
-                <button
+              <select
+                v-if="packageOptionsMap[product.id].length > 1"
+                :value="selectedPackageMap[product.id]"
+                class="package-select"
+                @change="setSelectedPackage(product.id, $event.target.value)"
+              >
+                <option
                   v-for="option in packageOptionsMap[product.id]"
                   :key="option.label"
-                  type="button"
-                  :class="['package-tab', { active: selectedPackageMap[product.id] === option.label }]"
-                  @click="setSelectedPackage(product.id, option.label)"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
+                  :value="option.label"
+                >{{ option.label }}</option>
+              </select>
             </div>
           </div>
 
@@ -528,26 +529,24 @@ export default {
   flex-direction: column;
 }
 
-.package-tabs {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.package-tab {
-  padding: 4px 8px;
+.package-select {
+  width: 100%;
+  height: 30px;
+  padding: 0 24px 0 8px;
   border: 0.5px solid var(--c-border);
   border-radius: 5px;
-  background: var(--c-surface);
-  color: var(--c-primary);
-  font-size: 11px;
+  background-color: var(--c-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 11px;
+  appearance: none;
+  -webkit-appearance: none;
+  color: var(--c-text-body);
+  font-size: 12px;
   font-weight: 400;
+  outline: none;
   cursor: pointer;
-}
-
-.package-tab.active {
-  border-color: var(--c-primary);
-  font-weight: 500;
 }
 
 .single-pkg-badge {
@@ -712,9 +711,9 @@ export default {
     font-size: 11px;
   }
 
-  .view-grid .package-tab {
+  .view-grid .package-select {
     font-size: 10px;
-    padding: 3px 5px;
+    height: 26px;
   }
 
   /* 直列：手機圖片縮小 */
