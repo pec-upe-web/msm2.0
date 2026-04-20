@@ -76,9 +76,7 @@ import {
   Lock as LockIcon,
   LogIn as LogInIcon,
   ShoppingCart as ShoppingCartIcon,
-  Briefcase as BriefcaseIcon,
-  Building2 as Building2Icon,
-  Globe as GlobeIcon
+  Briefcase as BriefcaseIcon
 } from 'lucide-vue'
 
 const roleRedirectMap = {
@@ -90,7 +88,7 @@ const roleRedirectMap = {
 
 export default {
   name: 'LoginPage',
-  components: { UserIcon, LockIcon, LogInIcon, ShoppingCartIcon, BriefcaseIcon, Building2Icon, GlobeIcon },
+  components: { UserIcon, LockIcon, LogInIcon, ShoppingCartIcon, BriefcaseIcon },
   data () {
     return {
       username: '',
