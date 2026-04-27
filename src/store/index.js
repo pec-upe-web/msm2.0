@@ -40,6 +40,16 @@ function isValidFavoriteProductIds (data) {
   return Array.isArray(data) && data.every(id => typeof id === 'string' && id.length > 0)
 }
 
+function isValidFavoriteProductMap (data) {
+  if (Array.isArray(data)) {
+    return isValidFavoriteProductIds(data)
+  }
+  if (!data || typeof data !== 'object') {
+    return false
+  }
+  return Object.values(data).every(ids => isValidFavoriteProductIds(ids))
+}
+
 function normalizeOrder (order) {
   return {
     ...order,
@@ -67,6 +77,51 @@ function normalizeInventoryRecord (record) {
           bestBeforeDate: block.bestBeforeDate || ''
         }))
       : []
+  }
+}
+
+function resolveCompanyIdFromCompanyName (companyName) {
+  const match = salesCompanies.find(company => company.name === companyName || company.shortName === companyName)
+  return match ? match.id : (salesCompanies[0] ? salesCompanies[0].id : '')
+}
+
+function normalizeFavoriteMap (data, fallbackCompanyId) {
+  if (Array.isArray(data)) {
+    return {
+      [fallbackCompanyId]: data.filter(id => typeof id === 'string' && id.length > 0)
+    }
+  }
+
+  if (!data || typeof data !== 'object') {
+    return {}
+  }
+
+  return Object.entries(data).reduce((acc, [companyId, ids]) => {
+    if (!Array.isArray(ids)) return acc
+    const uniqueIds = [...new Set(ids.filter(id => typeof id === 'string' && id.length > 0))]
+    if (uniqueIds.length) {
+      acc[companyId] = uniqueIds
+    }
+    return acc
+  }, {})
+}
+
+function resolveFavoritePayload (payload) {
+  if (typeof payload === 'string') {
+    return {
+      companyId: defaultFavoriteCompanyId,
+      productId: payload
+    }
+  }
+  if (!payload || typeof payload !== 'object') {
+    return {
+      companyId: defaultFavoriteCompanyId,
+      productId: ''
+    }
+  }
+  return {
+    companyId: payload.companyId || defaultFavoriteCompanyId,
+    productId: payload.productId || ''
   }
 }
 
@@ -127,8 +182,17 @@ const debouncedSaveFavorites = createDebouncedSave(FAVORITES_KEY)
 const persistedCart = loadPersisted(CART_KEY, isValidCart)
 const persistedOrders = loadPersisted(ORDERS_KEY, isValidOrders)
 const persistedInventory = loadPersisted(INVENTORY_KEY, d => Array.isArray(d))
-const persistedFavorites = loadPersisted(FAVORITES_KEY, isValidFavoriteProductIds)
+const currentUserFromStorage = getCurrentUser()
+const defaultFavoriteCompanyId = currentUserFromStorage
+  ? resolveCompanyIdFromCompanyName(currentUserFromStorage.company)
+  : (salesCompanies[0] ? salesCompanies[0].id : '')
+
+const persistedFavorites = loadPersisted(FAVORITES_KEY, isValidFavoriteProductMap)
 const defaultSalesCompanyId = salesCompanies[0] ? salesCompanies[0].id : ''
+const defaultSelectedSalesCompany =
+  currentUserFromStorage
+    ? (salesCompanies.find(company => company.id === resolveCompanyIdFromCompanyName(currentUserFromStorage.company)) || salesCompanies[0])
+    : salesCompanies[0]
 
 function normalizeCartItem (item) {
   return {
@@ -153,15 +217,16 @@ const initialOrdersState = mergeSeedOrders(
   initialOrders.map(normalizeOrder)
 )
 const initialInventoryState = (persistedInventory || initialInventoryRecords).map(normalizeInventoryRecord)
+const initialFavoritesState = normalizeFavoriteMap(persistedFavorites, defaultFavoriteCompanyId)
 
 export default new Vuex.Store({
   state: {
     currentUser: getCurrentUser(),
     cartItems: initialCartState,
     orders: initialOrdersState,
-    selectedSalesCompany: salesCompanies[0],
+    selectedSalesCompany: defaultSelectedSalesCompany,
     inventoryRecords: initialInventoryState,
-    favoriteProductIds: persistedFavorites || [],
+    favoriteByCompany: initialFavoritesState,
     snackbar: {
       message: '',
       type: 'success'
@@ -259,33 +324,49 @@ export default new Vuex.Store({
       state.inventoryRecords.unshift(record)
       debouncedSaveInventory(state.inventoryRecords)
     },
-    TOGGLE_FAVORITE_PRODUCT (state, productId) {
-      const index = state.favoriteProductIds.indexOf(productId)
+    TOGGLE_FAVORITE_PRODUCT (state, payload) {
+      const { companyId, productId } = resolveFavoritePayload(payload)
+      if (!productId) return
+      const resolvedCompanyId = companyId || defaultFavoriteCompanyId
+      if (!state.favoriteByCompany[resolvedCompanyId]) {
+        Vue.set(state.favoriteByCompany, resolvedCompanyId, [])
+      }
+      const favorites = state.favoriteByCompany[resolvedCompanyId]
+      const index = favorites.indexOf(productId)
       if (index === -1) {
-        state.favoriteProductIds.unshift(productId)
+        favorites.unshift(productId)
       } else {
-        state.favoriteProductIds.splice(index, 1)
+        favorites.splice(index, 1)
       }
-      debouncedSaveFavorites(state.favoriteProductIds)
+      debouncedSaveFavorites(state.favoriteByCompany)
     },
-    REMOVE_FAVORITE_PRODUCT (state, productId) {
-      const index = state.favoriteProductIds.indexOf(productId)
+    REMOVE_FAVORITE_PRODUCT (state, payload) {
+      const { companyId, productId } = resolveFavoritePayload(payload)
+      if (!productId) return
+      const resolvedCompanyId = companyId || defaultFavoriteCompanyId
+      const favorites = state.favoriteByCompany[resolvedCompanyId] || []
+      const index = favorites.indexOf(productId)
       if (index !== -1) {
-        state.favoriteProductIds.splice(index, 1)
-        debouncedSaveFavorites(state.favoriteProductIds)
+        favorites.splice(index, 1)
+        Vue.set(state.favoriteByCompany, resolvedCompanyId, favorites)
+        debouncedSaveFavorites(state.favoriteByCompany)
       }
     },
-    CLEAR_FAVORITES (state) {
-      state.favoriteProductIds = []
-      debouncedSaveFavorites(state.favoriteProductIds)
+    CLEAR_FAVORITES (state, companyId) {
+      if (companyId) {
+        Vue.delete(state.favoriteByCompany, companyId)
+      } else {
+        state.favoriteByCompany = {}
+      }
+      debouncedSaveFavorites(state.favoriteByCompany)
     },
     RESTORE_FROM_STORAGE (state) {
       const cart = loadPersisted(CART_KEY, isValidCart)
       const orders = loadPersisted(ORDERS_KEY, isValidOrders)
-      const favorites = loadPersisted(FAVORITES_KEY, isValidFavoriteProductIds)
+      const favorites = loadPersisted(FAVORITES_KEY, isValidFavoriteProductMap)
       if (cart) state.cartItems = cart.map(normalizeCartItem)
       if (orders) state.orders = orders
-      if (favorites) state.favoriteProductIds = favorites
+      if (favorites) state.favoriteByCompany = normalizeFavoriteMap(favorites, defaultFavoriteCompanyId)
     }
   },
   getters: {
@@ -301,6 +382,9 @@ export default new Vuex.Store({
         seen.add(`${item.productId}__${item.packageName}`)
       })
       return seen.size
+    },
+    favoriteProductIdsByCompanyId: state => companyId => {
+      return state.favoriteByCompany[companyId] || []
     }
   },
   actions: {
@@ -345,14 +429,14 @@ export default new Vuex.Store({
     addInventoryRecord ({ commit }, record) {
       commit('ADD_INVENTORY_RECORD', record)
     },
-    toggleFavoriteProduct ({ commit }, productId) {
-      commit('TOGGLE_FAVORITE_PRODUCT', productId)
+    toggleFavoriteProduct ({ commit }, payload) {
+      commit('TOGGLE_FAVORITE_PRODUCT', payload)
     },
-    removeFavoriteProduct ({ commit }, productId) {
-      commit('REMOVE_FAVORITE_PRODUCT', productId)
+    removeFavoriteProduct ({ commit }, payload) {
+      commit('REMOVE_FAVORITE_PRODUCT', payload)
     },
-    clearFavorites ({ commit }) {
-      commit('CLEAR_FAVORITES')
+    clearFavorites ({ commit }, companyId) {
+      commit('CLEAR_FAVORITES', companyId)
     }
   }
 })

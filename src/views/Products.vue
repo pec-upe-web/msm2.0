@@ -235,7 +235,7 @@ export default {
       return this.$store.state.selectedSalesCompany
     },
     favoriteProductIds () {
-      return this.$store.state.favoriteProductIds || []
+      return this.$store.getters.favoriteProductIdsByCompanyId(this.selectedSalesCompany.id)
     }
   },
   created () {
@@ -287,7 +287,10 @@ export default {
     },
     toggleFavorite (productId) {
       const willFavorite = !this.isFavorite(productId)
-      this.$store.dispatch('toggleFavoriteProduct', productId)
+      this.$store.dispatch('toggleFavoriteProduct', {
+        companyId: this.selectedSalesCompany.id,
+        productId
+      })
       this.$store.dispatch('showSnackbar', {
         message: willFavorite ? '已加入我的最愛' : '已從我的最愛移除',
         type: 'success'

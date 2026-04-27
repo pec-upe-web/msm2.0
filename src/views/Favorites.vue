@@ -5,6 +5,21 @@
       <h2 class="page-title">我的最愛</h2>
     </div>
 
+    <div class="top-tools">
+      <div class="company-switcher">
+        <span class="company-switcher-label">銷售公司</span>
+        <div class="company-tabs">
+          <button
+            v-for="co in salesCompanies"
+            :key="co.id"
+            type="button"
+            :class="['company-tab', { active: selectedSalesCompany.id === co.id }]"
+            @click="selectCompany(co)"
+          >{{ co.shortName }}</button>
+        </div>
+      </div>
+    </div>
+
     <template v-if="favoriteProducts.length">
       <div class="favorites-grid">
         <article v-for="product in favoriteProducts" :key="product.id" class="favorite-card">
@@ -85,6 +100,7 @@
 <script>
 import { products } from '../mock/products'
 import { promotions } from '../mock/promotions'
+import { salesCompanies } from '../mock/salesCompanies'
 import ProductPromotionBadge from '../components/ProductPromotionBadge.vue'
 import PromotionNotice from '../components/PromotionNotice.vue'
 import { Heart as HeartIcon } from 'lucide-vue'
@@ -96,6 +112,7 @@ export default {
     return {
       productList: products,
       promotionList: promotions,
+      salesCompanies,
       selectedPackageMap: {},
       quantityMap: {},
       imgReadyMap: {},
@@ -103,8 +120,11 @@ export default {
     }
   },
   computed: {
+    selectedSalesCompany () {
+      return this.$store.state.selectedSalesCompany || this.salesCompanies[0]
+    },
     favoriteProductIds () {
-      return this.$store.state.favoriteProductIds || []
+      return this.$store.getters.favoriteProductIdsByCompanyId(this.selectedSalesCompany.id)
     },
     packageOptionsMap () {
       const map = {}
@@ -146,6 +166,9 @@ export default {
     }
   },
   methods: {
+    selectCompany (co) {
+      this.$store.dispatch('setSalesCompany', co)
+    },
     initializeState () {
       this.favoriteProducts.forEach(product => {
         const firstOption = this.packageOptionsMap[product.id][0]
@@ -203,7 +226,10 @@ export default {
       this.$store.dispatch('showSnackbar', { message: '已加入購物車', type: 'success' })
     },
     removeFavorite (productId) {
-      this.$store.dispatch('removeFavoriteProduct', productId)
+      this.$store.dispatch('removeFavoriteProduct', {
+        companyId: this.selectedSalesCompany.id,
+        productId
+      })
       this.$delete(this.selectedPackageMap, productId)
       this.$delete(this.quantityMap, productId)
       this.$delete(this.imgReadyMap, productId)
@@ -223,6 +249,56 @@ export default {
 
 .page-title-block {
   margin-bottom: 4px;
+}
+
+.top-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.company-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.company-switcher-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text-faint);
+  white-space: nowrap;
+}
+
+.company-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.company-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.company-tab.active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: var(--c-surface);
+  font-weight: 500;
+}
+
+.company-tab:hover:not(.active) {
+  background: #f8fafc;
 }
 
 .page-title {
@@ -471,6 +547,14 @@ export default {
 }
 
 @media (max-width: 640px) {
+  .company-tabs {
+    width: 100%;
+  }
+
+  .company-tab {
+    padding: 5px 12px;
+  }
+
   .favorites-grid {
     grid-template-columns: repeat(3, calc((100% - 16px) / 3));
     gap: 8px;
