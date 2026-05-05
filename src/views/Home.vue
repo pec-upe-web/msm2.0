@@ -165,14 +165,12 @@
             <button
               type="button"
               :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance' }]"
-              :disabled="!scheduleCurrentLocation"
-              @click="scheduleSortMode = 'distance'"
+              @click="applyScheduleSortMode('distance')"
             >由近到遠</button>
             <button
               type="button"
               :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance_desc' }]"
-              :disabled="!scheduleCurrentLocation"
-              @click="scheduleSortMode = 'distance_desc'"
+              @click="applyScheduleSortMode('distance_desc')"
             >由遠到近</button>
           </div>
         </div>
@@ -369,14 +367,12 @@
               <button
                 type="button"
                 :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance' }]"
-                :disabled="!scheduleCurrentLocation"
-                @click="scheduleSortMode = 'distance'"
+                @click="applyScheduleSortMode('distance')"
               >由近到遠</button>
               <button
                 type="button"
                 :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance_desc' }]"
-                :disabled="!scheduleCurrentLocation"
-                @click="scheduleSortMode = 'distance_desc'"
+                @click="applyScheduleSortMode('distance_desc')"
               >由遠到近</button>
             </div>
           </div>
@@ -517,6 +513,11 @@ import {
 } from 'lucide-vue'
 import CustomerListItem from '../components/CustomerListItem.vue'
 import ThemeSwitcher from '../components/ThemeSwitcher.vue'
+
+const FALLBACK_SORT_LOCATION = {
+  lat: 25.033,
+  lng: 121.565
+}
 
 export default {
   name: 'HomePage',
@@ -779,20 +780,39 @@ export default {
       </svg>`
       return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
     },
-    loadCurrentLocationForSchedule () {
-      if (!navigator.geolocation) return
+    loadCurrentLocationForSchedule (targetMode = null) {
+      if (!navigator.geolocation) {
+        this.scheduleCurrentLocation = { ...FALLBACK_SORT_LOCATION }
+        if (targetMode) this.scheduleSortMode = targetMode
+        return
+      }
       navigator.geolocation.getCurrentPosition(
         pos => {
           this.scheduleCurrentLocation = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           }
+          if (targetMode) {
+            this.scheduleSortMode = targetMode
+          }
         },
         () => {
-          this.scheduleCurrentLocation = null
+          this.scheduleCurrentLocation = { ...FALLBACK_SORT_LOCATION }
+          if (targetMode) this.scheduleSortMode = targetMode
         },
         { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
       )
+    },
+    applyScheduleSortMode (mode) {
+      if (mode === 'default') {
+        this.scheduleSortMode = 'default'
+        return
+      }
+      if (this.scheduleCurrentLocation) {
+        this.scheduleSortMode = mode
+        return
+      }
+      this.loadCurrentLocationForSchedule(mode)
     },
     openNotice (notice) {
       this.modal = { visible: true, notice }

@@ -191,14 +191,12 @@
               <button
                 type="button"
                 :class="['customer-modal-chip', { active: scheduleSortMode === 'distance' }]"
-                :disabled="!selectionLocation"
-                @click="scheduleSortMode = 'distance'"
+                @click="applyScheduleSortMode('distance')"
               >由近到遠</button>
               <button
                 type="button"
                 :class="['customer-modal-chip', { active: scheduleSortMode === 'distance_desc' }]"
-                :disabled="!selectionLocation"
-                @click="scheduleSortMode = 'distance_desc'"
+                @click="applyScheduleSortMode('distance_desc')"
               >由遠到近</button>
             </div>
           </div>
@@ -320,6 +318,10 @@ import { Plus as PlusIcon } from 'lucide-vue'
 import CustomerListItem from '../components/CustomerListItem.vue'
 
 const customerMap = Object.fromEntries(customers.map(c => [c.id, c.name]))
+const FALLBACK_SORT_LOCATION = {
+  lat: 25.033,
+  lng: 121.565
+}
 
 const PAGE_SIZE = 10
 
@@ -488,17 +490,25 @@ export default {
     dateTo () { this.currentPage = 1 }
   },
   methods: {
-    loadSelectionLocation () {
-      if (!navigator.geolocation) return
+    loadSelectionLocation (targetMode = null) {
+      if (!navigator.geolocation) {
+        this.selectionLocation = { ...FALLBACK_SORT_LOCATION }
+        if (targetMode) this.scheduleSortMode = targetMode
+        return
+      }
       navigator.geolocation.getCurrentPosition(
         pos => {
           this.selectionLocation = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           }
+          if (targetMode) {
+            this.scheduleSortMode = targetMode
+          }
         },
         () => {
-          this.selectionLocation = null
+          this.selectionLocation = { ...FALLBACK_SORT_LOCATION }
+          if (targetMode) this.scheduleSortMode = targetMode
         },
         { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
       )
@@ -583,6 +593,17 @@ export default {
     },
     selectCustomer (customerId) {
       this.selectedCustomerId = customerId
+    },
+    applyScheduleSortMode (mode) {
+      if (mode === 'default') {
+        this.scheduleSortMode = 'default'
+        return
+      }
+      if (this.selectionLocation) {
+        this.scheduleSortMode = mode
+        return
+      }
+      this.loadSelectionLocation(mode)
     },
     decorateCustomerDistance (customer) {
       const point = getCustomerPoint(customer)
