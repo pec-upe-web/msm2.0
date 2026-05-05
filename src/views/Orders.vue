@@ -166,34 +166,88 @@
           placeholder="搜尋客戶名稱"
         />
 
-        <div class="customer-modal-tabs">
+        <div class="customer-modal-tabs" role="tablist" aria-label="客戶來源">
           <button
             type="button"
-            :class="['customer-modal-tab', { active: selectionMode === 'my' }]"
-            @click="switchSelectionMode('my')"
-          >我的客戶</button>
+            :class="['customer-modal-tab', { active: activeCustomerTab === 'schedule' }]"
+            @click="activeCustomerTab = 'schedule'"
+          >今日班表</button>
           <button
             type="button"
-            :class="['customer-modal-tab', { active: selectionMode === 'other' }]"
-            @click="switchSelectionMode('other')"
-          >不是我的客戶</button>
+            :class="['customer-modal-tab', { active: activeCustomerTab === 'nearby' }]"
+            @click="activeCustomerTab = 'nearby'"
+          >附近客戶</button>
         </div>
 
-        <div class="customer-modal-list">
-          <button
-            v-for="customer in modalCustomers"
-            :key="customer.id"
-            type="button"
-            :class="['customer-modal-item', { selected: selectedCustomerId === customer.id }]"
-            @click="selectCustomer(customer.id)"
-          >
-            <customer-list-item
-              :name="customer.name"
-              :address="customer.address"
-              :distance="customer.distance"
-            />
-          </button>
-          <div v-if="modalCustomers.length === 0" class="customer-modal-empty">沒有符合的客戶</div>
+        <div v-if="activeCustomerTab === 'schedule'" class="customer-modal-section">
+          <div class="customer-modal-toolbar">
+            <span class="customer-modal-toolbar-label">排序</span>
+            <div class="customer-modal-chip-group" role="tablist" aria-label="今日班表排序">
+              <button
+                type="button"
+                :class="['customer-modal-chip', { active: scheduleSortMode === 'default' }]"
+                @click="scheduleSortMode = 'default'"
+              >預設排序</button>
+              <button
+                type="button"
+                :class="['customer-modal-chip', { active: scheduleSortMode === 'distance' }]"
+                :disabled="!selectionLocation"
+                @click="scheduleSortMode = 'distance'"
+              >由近到遠</button>
+            </div>
+          </div>
+          <div class="customer-modal-list customer-modal-list--tab">
+            <button
+              v-for="customer in todayScheduleCustomers"
+              :key="'schedule_' + customer.id"
+              type="button"
+              :class="['customer-modal-item', { selected: selectedCustomerId === customer.id }]"
+              @click="selectCustomer(customer.id)"
+            >
+              <div class="customer-modal-item-main">
+                <customer-list-item
+                  :name="customer.name"
+                  :address="customer.address"
+                  :distance="customer.distance"
+                />
+              </div>
+            </button>
+            <div v-if="todayScheduleCustomers.length === 0" class="customer-modal-empty">沒有符合的今日班表客戶</div>
+          </div>
+        </div>
+
+        <div v-else class="customer-modal-section">
+          <div class="customer-modal-toolbar">
+            <span class="customer-modal-toolbar-label">顯示</span>
+            <div class="customer-modal-chip-group" role="tablist" aria-label="附近客戶篩選">
+              <button
+                type="button"
+                :class="['customer-modal-chip', { active: nearbyCustomerScope === 'my' }]"
+                @click="nearbyCustomerScope = 'my'"
+              >我的客戶</button>
+              <button
+                type="button"
+                :class="['customer-modal-chip', { active: nearbyCustomerScope === 'all' }]"
+                @click="nearbyCustomerScope = 'all'"
+              >全部客戶</button>
+            </div>
+          </div>
+          <div class="customer-modal-list customer-modal-list--tab">
+            <button
+              v-for="customer in nearbyCustomers"
+              :key="'nearby_' + customer.id"
+              type="button"
+              :class="['customer-modal-item', { selected: selectedCustomerId === customer.id }]"
+              @click="selectCustomer(customer.id)"
+            >
+              <customer-list-item
+                :name="customer.name"
+                :address="customer.address"
+                :distance="customer.distance"
+              />
+            </button>
+            <div v-if="nearbyCustomers.length === 0" class="customer-modal-empty">沒有符合的附近客戶</div>
+          </div>
         </div>
 
         <div class="customer-modal-actions">
@@ -251,9 +305,11 @@
 </template>
 
 <script>
-import { customers } from '../mock/customers'
+import { customers, customerById } from '../mock/customers'
+import { buildTodaySchedule } from '../mock/schedule'
 import { getCurrentUser } from '../services/auth'
-import { buildSelectableCustomers, getCustomerPoint } from '../utils/customerSelection'
+import { getCustomerPoint } from '../utils/customerSelection'
+import { sortByDistance, haversineKm } from '../utils/distance'
 import { Plus as PlusIcon } from 'lucide-vue'
 import CustomerListItem from '../components/CustomerListItem.vue'
 
@@ -275,7 +331,9 @@ export default {
       customers,
       showModal: false,
       modalSearch: '',
-      selectionMode: 'my',
+      activeCustomerTab: 'schedule',
+      scheduleSortMode: 'default',
+      nearbyCustomerScope: 'my',
       selectedCustomerId: null,
       selectionLocation: null,
       selectedOrderIds: []
@@ -325,17 +383,45 @@ export default {
       const all = this.$store.state.orders.map(o => o.companyName).filter(Boolean)
       return [...new Set(all)].sort()
     },
-    modalCustomers () {
-      return buildSelectableCustomers({
-        customers: this.customers,
-        currentUserId: this.currentUser.id,
-        mode: this.selectionMode,
-        currentLocation: this.selectionLocation,
-        keyword: this.modalSearch
-      })
+    todayScheduleCustomers () {
+      const keyword = this.modalSearch.trim().toLowerCase()
+      const filtered = buildTodaySchedule(customerById)
+        .map(item => ({
+          id: item.customerId,
+          name: item.customer,
+          address: item.address,
+          location: item.location,
+          time: item.time
+        }))
+        .filter(customer => {
+          if (!keyword) return true
+          return (customer.name || '').toLowerCase().includes(keyword) ||
+            (customer.address || '').toLowerCase().includes(keyword)
+        })
+
+      const ordered = this.scheduleSortMode === 'distance'
+        ? sortByDistance(filtered, this.selectionLocation, customer => customer.location)
+        : filtered
+
+      return ordered.map(customer => this.decorateCustomerDistance(customer))
     },
-    filteredCustomers () {
-      return this.modalCustomers
+    nearbyCustomers () {
+      const keyword = this.modalSearch.trim().toLowerCase()
+      const filtered = this.customers
+        .filter(customer => {
+          if (this.nearbyCustomerScope === 'my') {
+            return customer.assignedTo === this.currentUser.id
+          }
+          return true
+        })
+        .filter(customer => {
+          if (!keyword) return true
+          return (customer.name || '').toLowerCase().includes(keyword) ||
+            (customer.address || '').toLowerCase().includes(keyword)
+        })
+
+      const ordered = sortByDistance(filtered, this.selectionLocation, customer => getCustomerPoint(customer))
+      return ordered.map(customer => this.decorateCustomerDistance(customer))
     },
     filteredOrders () {
       return this.$store.state.orders.filter(order => {
@@ -469,7 +555,9 @@ export default {
     },
     openModal () {
       this.modalSearch = ''
-      this.selectionMode = 'my'
+      this.activeCustomerTab = 'schedule'
+      this.scheduleSortMode = 'default'
+      this.nearbyCustomerScope = 'my'
       this.selectionLocation = null
       this.selectedCustomerId = null
       this.showModal = true
@@ -478,16 +566,25 @@ export default {
     closeModal () {
       this.showModal = false
       this.modalSearch = ''
-      this.selectionMode = 'my'
+      this.activeCustomerTab = 'schedule'
+      this.scheduleSortMode = 'default'
+      this.nearbyCustomerScope = 'my'
       this.selectionLocation = null
-      this.selectedCustomerId = null
-    },
-    switchSelectionMode (mode) {
-      this.selectionMode = mode
       this.selectedCustomerId = null
     },
     selectCustomer (customerId) {
       this.selectedCustomerId = customerId
+    },
+    decorateCustomerDistance (customer) {
+      const point = getCustomerPoint(customer)
+      const distance = this.selectionLocation && point
+        ? haversineKm(this.selectionLocation.lat, this.selectionLocation.lng, point.lat, point.lng)
+        : null
+
+      return {
+        ...customer,
+        distance
+      }
     },
     confirmCustomer () {
       if (!this.selectedCustomerId) return
@@ -926,37 +1023,110 @@ tr.is-pending td:first-child {
 }
 
 .customer-modal-search {
-  height: 38px;
-  padding: 0 12px;
+  height: 46px;
+  padding: 0 16px;
   border: 0.5px solid var(--c-border);
-  border-radius: 8px;
+  border-radius: 12px;
   background: #ffffff;
   color: #334155;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
 }
 
 .customer-modal-tabs {
   display: flex;
-  gap: 8px;
+  gap: 0;
+  align-items: flex-end;
+  border-bottom: 0.5px solid var(--c-divider);
+  padding-bottom: 0;
 }
 
 .customer-modal-tab {
+  position: relative;
   flex: 1;
-  height: 36px;
+  min-height: 44px;
+  padding: 0 10px 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #8b95a8;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.customer-modal-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.5px;
+  height: 4px;
+  border-radius: 999px 999px 0 0;
+  background: transparent;
+  transition: background-color 0.18s ease;
+}
+
+.customer-modal-tab.active {
+  color: var(--c-primary);
+}
+
+.customer-modal-tab.active::after {
+  background: var(--c-primary);
+}
+
+.customer-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.customer-modal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.customer-modal-toolbar-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.customer-modal-chip-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
   border: 0.5px solid var(--c-border);
   border-radius: 999px;
-  background: #ffffff;
+  background: #f8fafc;
+}
+
+.customer-modal-chip {
+  min-height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: #475569;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.customer-modal-tab.active {
+.customer-modal-chip.active {
   background: var(--c-primary);
   color: #ffffff;
-  border-color: var(--c-primary);
+}
+
+.customer-modal-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .customer-modal-list {
@@ -970,10 +1140,16 @@ tr.is-pending td:first-child {
   background: #ffffff;
 }
 
+.customer-modal-list--tab {
+  flex: 1;
+  max-height: min(48vh, 420px);
+}
+
 .customer-modal-item {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
   padding: 12px 14px;
   border: none;
@@ -981,6 +1157,11 @@ tr.is-pending td:first-child {
   background: #ffffff;
   text-align: left;
   cursor: pointer;
+}
+
+.customer-modal-item-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .customer-modal-item:last-child {
@@ -995,16 +1176,19 @@ tr.is-pending td:first-child {
   background: #eef3fb;
 }
 
-.customer-modal-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.customer-modal-address {
+.customer-modal-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
   font-size: 12px;
-  font-weight: 400;
-  color: #94a3b8;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .customer-modal-empty {
@@ -1080,6 +1264,27 @@ tr.is-pending td:first-child {
     width: 100%;
     min-height: 44px;
     height: 44px;
+  }
+
+  .customer-modal-chip-group {
+    width: 100%;
+  }
+
+  .customer-modal-chip {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .customer-modal-item {
+    flex-wrap: wrap;
+  }
+
+  .customer-modal-meta-badge {
+    margin-left: 0;
+  }
+
+  .customer-modal-tabs {
+    gap: 0;
   }
 }
 </style>

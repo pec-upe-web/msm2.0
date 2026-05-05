@@ -154,17 +154,32 @@
           <h3 class="card-title card-title--serif">今日班表</h3>
           <span class="card-eyebrow">SCHEDULE</span>
         </div>
+        <div class="schedule-sort-bar">
+          <span class="schedule-sort-label">排序</span>
+          <div class="schedule-sort-switch" role="tablist" aria-label="班表排序">
+            <button
+              type="button"
+              :class="['schedule-sort-btn', { active: scheduleSortMode === 'default' }]"
+              @click="scheduleSortMode = 'default'"
+            >預設排序</button>
+            <button
+              type="button"
+              :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance' }]"
+              :disabled="!scheduleCurrentLocation"
+              @click="scheduleSortMode = 'distance'"
+            >由近到遠</button>
+          </div>
+        </div>
         <ul class="schedule-list">
           <li
             v-for="(appt, idx) in schedule"
             :key="idx"
-            :class="['schedule-item', 'schedule-item--clickable', { selected: selectedScheduleIndex === idx }]"
+            :class="['schedule-item', 'schedule-item--clickable', { selected: selectedScheduleId === appt.customerId }]"
             tabindex="0"
-            @mouseenter="setSelectedScheduleIndex(idx)"
-            @mouseleave="clearSelectedScheduleIndex(idx)"
-            @focus="setSelectedScheduleIndex(idx)"
-            @blur="clearSelectedScheduleIndex(idx)"
-            @click="goToOrderWork(appt.customerId)"
+            @mouseenter="setSelectedScheduleId(appt.customerId)"
+            @mouseleave="clearSelectedScheduleId(appt.customerId)"
+            @focus="setSelectedScheduleId(appt.customerId)"
+            @blur="clearSelectedScheduleId(appt.customerId)"
           >
             <div class="timeline-track">
               <span class="sched-dot"></span>
@@ -176,9 +191,12 @@
               :address="appt.address"
               :distance="appt.distance"
               :has-order="appt.hasOrder"
-              :selected="selectedScheduleIndex === idx"
+              :selected="selectedScheduleId === appt.customerId"
             />
-            <span class="appt-arrow">›</span>
+            <div class="schedule-item-actions">
+              <button type="button" class="schedule-action-btn" @click.stop="goToOrderWork(appt.customerId)">訂單建立</button>
+              <button type="button" class="schedule-action-btn schedule-action-btn--secondary" @click.stop="goToInventoryWork(appt.customerId)">盤點</button>
+            </div>
           </li>
         </ul>
         <div class="card-footer">
@@ -333,18 +351,33 @@
               <x-icon :size="16" :stroke-width="1.5" />
             </button>
           </div>
-          <h2 class="modal-title">完整班表</h2>
+          <h2 class="modal-title">今日班表</h2>
+          <div class="schedule-sort-bar schedule-sort-bar--modal">
+            <span class="schedule-sort-label">排序</span>
+            <div class="schedule-sort-switch" role="tablist" aria-label="完整班表排序">
+              <button
+                type="button"
+                :class="['schedule-sort-btn', { active: scheduleSortMode === 'default' }]"
+                @click="scheduleSortMode = 'default'"
+              >預設排序</button>
+              <button
+                type="button"
+                :class="['schedule-sort-btn', { active: scheduleSortMode === 'distance' }]"
+                :disabled="!scheduleCurrentLocation"
+                @click="scheduleSortMode = 'distance'"
+              >由近到遠</button>
+            </div>
+          </div>
           <ul class="schedule-list schedule-modal-list">
             <li
               v-for="(appt, idx) in allSchedule"
               :key="idx"
-              :class="['schedule-item', 'schedule-item--clickable', { selected: selectedScheduleIndex === idx }]"
+              :class="['schedule-item', 'schedule-item--clickable', { selected: selectedScheduleId === appt.customerId }]"
               tabindex="0"
-              @mouseenter="setSelectedScheduleIndex(idx)"
-              @mouseleave="clearSelectedScheduleIndex(idx)"
-              @focus="setSelectedScheduleIndex(idx)"
-              @blur="clearSelectedScheduleIndex(idx)"
-              @click="goToOrderWork(appt.customerId)"
+              @mouseenter="setSelectedScheduleId(appt.customerId)"
+              @mouseleave="clearSelectedScheduleId(appt.customerId)"
+              @focus="setSelectedScheduleId(appt.customerId)"
+              @blur="clearSelectedScheduleId(appt.customerId)"
             >
             <div class="timeline-track">
               <span class="sched-dot"></span>
@@ -356,9 +389,12 @@
               :address="appt.address"
               :distance="appt.distance"
               :has-order="appt.hasOrder"
-              :selected="selectedScheduleIndex === idx"
+              :selected="selectedScheduleId === appt.customerId"
             />
-              <span class="appt-arrow">›</span>
+              <div class="schedule-item-actions">
+                <button type="button" class="schedule-action-btn" @click.stop="goToOrderWork(appt.customerId)">訂單建立</button>
+                <button type="button" class="schedule-action-btn schedule-action-btn--secondary" @click.stop="goToInventoryWork(appt.customerId)">盤點</button>
+              </div>
             </li>
           </ul>
           <div class="modal-footer">
@@ -480,8 +516,9 @@ export default {
       modal: { visible: false, notice: null },
       promoModal: { visible: false, mode: 'list', promoId: null },
       scheduleModal: false,
+      scheduleSortMode: 'default',
       scheduleCurrentLocation: null,
-      selectedScheduleIndex: null
+      selectedScheduleId: null
     }
   },
   computed: {
@@ -539,7 +576,8 @@ export default {
     allSchedule () {
       return buildTodayStoreList(this.scheduleCurrentLocation, {
         orderCustomerIds: this.todayOrderedCustomerIds,
-        radiusKm: 30
+        radiusKm: 30,
+        sortMode: this.scheduleSortMode
       })
     },
     schedule () {
@@ -757,12 +795,12 @@ export default {
     closePromoModal () {
       this.promoModal = { visible: false, mode: 'list', promoId: null }
     },
-    setSelectedScheduleIndex (idx) {
-      this.selectedScheduleIndex = idx
+    setSelectedScheduleId (customerId) {
+      this.selectedScheduleId = customerId
     },
-    clearSelectedScheduleIndex (idx) {
-      if (this.selectedScheduleIndex === idx) {
-        this.selectedScheduleIndex = null
+    clearSelectedScheduleId (customerId) {
+      if (this.selectedScheduleId === customerId) {
+        this.selectedScheduleId = null
       }
     },
     promoConditionText (promo) {
@@ -778,6 +816,10 @@ export default {
     goToOrderWork (customerId) {
       if (!customerId) return
       this.$router.push({ path: '/orders/new/review', query: { customerId } })
+    },
+    goToInventoryWork (customerId) {
+      if (!customerId) return
+      this.$router.push({ path: '/inventory-checks/' + customerId, query: {} })
     },
     closeModal () {
       if (this.modal.notice && this.modal.notice.isUrgent) {
@@ -1529,6 +1571,55 @@ export default {
   flex-direction: column;
 }
 
+.schedule-sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.schedule-sort-bar--modal {
+  margin-top: -2px;
+}
+
+.schedule-sort-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.schedule-sort-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: #f8fafc;
+}
+
+.schedule-sort-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.schedule-sort-btn.active {
+  background: var(--c-primary);
+  color: #ffffff;
+}
+
+.schedule-sort-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .schedule-item {
   display: flex;
   align-items: flex-start;
@@ -1663,6 +1754,53 @@ export default {
   line-height: 1;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.schedule-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.schedule-action-btn {
+  min-width: 76px;
+  border: 1px solid rgba(51, 65, 85, 0.18);
+  background: transparent;
+  color: #334155;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.schedule-action-btn:hover,
+.schedule-action-btn:focus-visible,
+.schedule-action-btn:active {
+  background: #ffffff;
+  color: #334155;
+  border-color: rgba(51, 65, 85, 0.22);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.schedule-item.selected .schedule-action-btn {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.48);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.schedule-item.selected .schedule-action-btn:hover,
+.schedule-item.selected .schedule-action-btn:focus-visible,
+.schedule-item.selected .schedule-action-btn:active {
+  background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.82);
+  color: #334155;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
 }
 
 /* ── 公佈欄 ─────────────────────────────── */
@@ -1883,6 +2021,16 @@ export default {
     font-size: 12px;
     padding: 6px 12px;
   }
+
+  .schedule-item {
+    flex-wrap: wrap;
+  }
+
+  .schedule-item-actions {
+    width: 100%;
+    margin-left: 21px;
+    padding-top: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1891,6 +2039,21 @@ export default {
   }
   .modal-card {
     max-width: 100%;
+  }
+
+  .schedule-sort-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .schedule-sort-switch,
+  .schedule-item-actions {
+    width: 100%;
+  }
+
+  .schedule-action-btn {
+    flex: 1;
+    min-width: 0;
   }
 }
 </style>

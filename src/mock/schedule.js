@@ -68,6 +68,7 @@ function buildStoreEntry (customer, source, extra = {}) {
 
 export function buildTodayStoreList (currentLocation = null, options = {}) {
   const radiusKm = typeof options.radiusKm === 'number' ? options.radiusKm : 30
+  const sortMode = options.sortMode === 'distance' ? 'distance' : 'default'
   const orderCustomerIds = options.orderCustomerIds instanceof Set
     ? options.orderCustomerIds
     : new Set(Array.isArray(options.orderCustomerIds) ? options.orderCustomerIds : [])
@@ -100,7 +101,7 @@ export function buildTodayStoreList (currentLocation = null, options = {}) {
     return true
   })
 
-  const ordered = currentLocation
+  const ordered = currentLocation && sortMode === 'distance'
     ? sortByDistance(
         deduped,
         currentLocation,

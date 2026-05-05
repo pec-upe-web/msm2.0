@@ -168,7 +168,7 @@ export default {
         .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''))
     },
     todayStoreList () {
-      return buildTodayStoreList(this.currentLocation)
+      return buildTodayStoreList(this.currentLocation, { sortMode: 'distance' })
     },
     filteredCustomers () {
       if (!this.keyword) return this.todayStoreList
